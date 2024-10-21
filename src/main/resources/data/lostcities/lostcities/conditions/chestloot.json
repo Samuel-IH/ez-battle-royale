@@ -1,0 +1,32 @@
+{
+  "values": [
+    {
+      "factor": 1,
+      "value": "lostcities:chests/lostcitychest",
+      "range": "4,100"
+    },
+    {
+      "factor": 1,
+      "value": "lostcities:chests/lostcitychest",
+      "range": "-100,-3"
+    },
+    {
+      "factor": 1,
+      "value": "lostcities:chests/raildungeonchest",
+      "inpart": "rail_dungeon1"
+    },
+    {
+      "factor": 1,
+      "value": "lostcities:chests/raildungeonchest",
+      "inpart": "rail_dungeon2"
+    },
+    {
+      "factor": 1,
+      "value": "tw:chests/everything"
+    },
+    {
+      "factor": 1,
+      "value": "tw:chests/other_stuff"
+    }
+  ]
+}

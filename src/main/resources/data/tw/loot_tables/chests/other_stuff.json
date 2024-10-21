@@ -1,0 +1,417 @@
+{
+  "pools": [
+    {
+      "rolls": 2,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "cgm:grenade_launcher",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "cgm:bazooka",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "cgm:mini_gun",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "cgm:heavy_rifle",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "cgm:pistol",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "cgm:rifle",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "cgm:shotgun",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "cgm:assault_rifle",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "cgm:machine_pistol",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "cgm:basic_bullet",
+          "weight": 1,
+          "quality": 0,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "min": 4,
+                "max": 60
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "cgm:advanced_bullet",
+          "weight": 2,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "min": 2,
+                "max": 34
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "cgm:shell",
+          "weight": 2,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "min": 0,
+                "max": 24
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "cgm:short_scope",
+          "weight": 6
+        },
+        {
+          "type": "minecraft:item",
+          "name": "cgm:medium_scope",
+          "weight": 6
+        },
+        {
+          "type": "minecraft:item",
+          "name": "cgm:long_scope",
+          "weight": 6
+        },
+        {
+          "type": "minecraft:item",
+          "name": "cgm:light_stock",
+          "weight": 6
+        },
+        {
+          "type": "minecraft:item",
+          "name": "cgm:tactical_stock",
+          "weight": 6
+        },
+        {
+          "type": "minecraft:item",
+          "name": "cgm:weighted_stock",
+          "weight": 6
+        },
+        {
+          "type": "minecraft:item",
+          "name": "cgm:silencer",
+          "weight": 6
+        },
+        {
+          "type": "minecraft:item",
+          "name": "cgm:light_grip",
+          "weight": 6
+        },
+        {
+          "type": "minecraft:item",
+          "name": "cgm:specialised_grip",
+          "weight": 6
+        },
+        {
+          "type": "minecraft:item",
+          "name": "cgm:workbench",
+          "weight": 1
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "immersive_melodies:flute",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "immersive_melodies:lute",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "immersive_melodies:piano",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "immersive_melodies:triangle",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "immersive_melodies:trumpet",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "immersive_melodies:bagpipe",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "immersive_melodies:didgeridoo",
+          "weight": 1
+        }
+      ]
+    },
+    {
+      "rolls": 6,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:cobblestone",
+          "weight": 15,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "min": 0,
+                "max": 15
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:leather",
+          "weight": 2,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "min": 0,
+                "max": 2
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:stick",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "min": 0,
+                "max": 42
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:string",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "min": 2,
+                "max": 7
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:baked_potato",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "min": 0,
+                "max": 8
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:carrot",
+          "weight": 4,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "min": 0,
+                "max": 3
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:beetroot",
+          "weight": 10
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:honey_bottle",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "min": 2,
+                "max": 4
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:bread",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "min": 4,
+                "max": 12
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:tag",
+          "name": "minecraft:stone_bricks",
+          "expand": false,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "min": 5,
+                "max": 30
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:iron_ingot",
+          "weight": 4,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "min": 2,
+                "max": 12
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:diamond",
+          "weight": 2,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "min": 1,
+                "max": 7
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:gold_ingot",
+          "weight": 3,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "min": 5,
+                "max": 17
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:copper_ingot",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "min": 3,
+                "max": 24
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:netherite_ingot",
+          "weight": 1,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "min": 0,
+                "max": 1
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:leather",
+          "weight": 3,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "min": 3,
+                "max": 15
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

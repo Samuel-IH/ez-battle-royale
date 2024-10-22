@@ -52,6 +52,7 @@ import org.slf4j.Logger;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 // The value here should match an entry in the META-INF/mods.toml file
@@ -62,6 +63,7 @@ public class EzRoyale
 
     private static boolean isInSetup = true;
     private static Vec3 respawnPos = new Vec3(0, 500, 0);
+    private static Vec3 nextShiftPoint = new Vec3(0, 0, 0);// point to shift the storm to
 
     // maps
     private static final HashMap<UUID, Boolean> needsLandingCheck = new HashMap<>();
@@ -261,6 +263,7 @@ public class EzRoyale
         var randDist = Math.random() * Config.maxRandDistFromCenter * Config.maxWorldBorderSize;
         var randAngle = Math.random() * 2 * Math.PI;
         var targetPos = new Vec3(callerPos.x + randDist * Math.cos(randAngle), 0, callerPos.z + randDist * Math.sin(randAngle));
+        nextShiftPoint = targetPos;
 
         // set world border center to caller position
         border.setCenter(targetPos.x, targetPos.z);
@@ -418,5 +421,65 @@ public class EzRoyale
         }
 
         return false;
+    }
+
+
+    private static final double BORDER_MOVEMENT_SPEED = 0.1;
+    private static final Random random = new Random();
+
+    @SubscribeEvent
+    public void onServerTick(TickEvent.ServerTickEvent event) {
+        LOGGER.info("Server tick event");
+        if (event.phase == TickEvent.Phase.END) {
+            return;  // Skip the end phase
+        }
+        LOGGER.info("Server tick event end");
+
+        // Access the overworld (or whichever world you want to manipulate)
+        ServerLevel overworld = event.getServer().getLevel(ServerLevel.OVERWORLD);
+
+        if (overworld == null) {
+            return;  // Skip if the overworld is not loaded
+        }
+
+        LOGGER.info("Server tick event end 2");
+        tryMoveWorldBorderRandomly(overworld);
+    }
+
+
+    private void tryMoveWorldBorderRandomly(ServerLevel overworld) {
+        WorldBorder worldBorder = overworld.getWorldBorder();
+
+        // Check if the world border has reached or is near the minimum size
+        if (!(worldBorder.getSize() <= Config.minWorldBorderSize + 1)) { return; }
+
+        // Make the border move randomly
+        moveWorldBorderRandomly(worldBorder);
+    }
+
+    // Move the world border randomly once it reaches the minimum size
+    private void moveWorldBorderRandomly(WorldBorder worldBorder) {
+        // Random movement logic
+        double currentX = worldBorder.getCenterX();
+        double currentZ = worldBorder.getCenterZ();
+
+        // get distance from next shift point
+        double dist = Math.sqrt(Math.pow(currentX - nextShiftPoint.x, 2) + Math.pow(currentZ - nextShiftPoint.z, 2));
+
+        // if close enough, set new shift point
+        if (dist < 1) {
+            var randDist = Math.random() * Config.maxRandDistFromCenter * Config.maxWorldBorderSize;
+            var randAngle = Math.random() * 2 * Math.PI;
+            nextShiftPoint = new Vec3(currentX + randDist * Math.cos(randAngle), 0, currentZ + randDist * Math.sin(randAngle));
+        }
+
+        // Adjust to move towards the next shift point, at a maximum speed of BORDER_MOVEMENT_SPEED
+        double deltaX = Math.min(BORDER_MOVEMENT_SPEED, nextShiftPoint.x - currentX);
+        double deltaZ = Math.min(BORDER_MOVEMENT_SPEED, nextShiftPoint.z - currentZ);
+
+        // Set the new world border center
+        worldBorder.setCenter(currentX + deltaX, currentZ + deltaZ);
+        worldBorder.setSize(Config.minWorldBorderSize);
+
     }
 }

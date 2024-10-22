@@ -228,8 +228,18 @@ public class EzRoyale
                         .then(Commands.literal("start")
                                 .then(Commands.literal("here")
                                         .executes(context -> {
-                                            return startRoyale(context.getSource());
-                                        })))
+                                            var caller = context.getSource().getPlayerOrException();
+                                            return startRoyale(context.getSource(), caller.position());
+                                        }))
+                                .then(Commands.literal("random")
+                                        .executes(context -> {
+                                            var rand = new Random();
+                                            var radius = 99999;
+                                            var x = rand.nextInt(radius * 2) - radius;
+                                            var z = rand.nextInt(radius * 2) - radius;
+                                            return startRoyale(context.getSource(), new Vec3(x, 0, z));
+                                        }))
+                        )
                         .requires(source -> source.hasPermission(2)) // Only allow ops to run this command
                         .then(Commands.literal("stop")
                                 .executes(context -> {
@@ -242,10 +252,9 @@ public class EzRoyale
     }
 
     // Equip Elytra with Curse of Binding, apply damage resistance, and set NBT flag
-    private int startRoyale(CommandSourceStack source) throws CommandSyntaxException {
+    private int startRoyale(CommandSourceStack source, Vec3 atPosition) throws CommandSyntaxException {
         ResetAllMaps();
 
-        ServerPlayer caller = source.getPlayerOrException();
         ServerLevel world = source.getLevel();
         WorldBorder border = world.getWorldBorder();
 
@@ -258,13 +267,10 @@ public class EzRoyale
             p.getInventory().clearContent();
         });
 
-        // get position of caller
-        var callerPos = caller.position();
-
         // get random position in circle around caller with radius of MAX_RAND_DIST_FROM_CENTER * MAX_WORLD_BORDER_SIZE\
         var randDist = Math.random() * Config.maxRandDistFromCenter * Config.maxWorldBorderSize;
         var randAngle = Math.random() * 2 * Math.PI;
-        var targetPos = new Vec3(callerPos.x + randDist * Math.cos(randAngle), 0, callerPos.z + randDist * Math.sin(randAngle));
+        var targetPos = new Vec3(atPosition.x + randDist * Math.cos(randAngle), 0, atPosition.z + randDist * Math.sin(randAngle));
         nextShiftPoint = targetPos;
 
         // set world border center to caller position
@@ -274,7 +280,7 @@ public class EzRoyale
         // begin shrinkage
         border.lerpSizeBetween(Config.maxWorldBorderSize, Config.minWorldBorderSize, (int)(Config.shrinkTime * 60 * 1000));  // shrink world border to 100 blocks over 100 seconds
 
-        respawnPos = new Vec3(callerPos.x, 400, callerPos.z);
+        respawnPos = new Vec3(atPosition.x, 400, atPosition.z);
         source.getServer().getPlayerList().getPlayers().forEach(this::launchPlayer);
 
         world.setWeatherParameters(0, 240000, true, true);

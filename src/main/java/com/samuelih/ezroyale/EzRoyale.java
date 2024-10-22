@@ -290,6 +290,9 @@ public class EzRoyale
         setLandingCheck(player);
         player.startFallFlying();
 
+        // set xp to a very large amount (basically limitless enchanting)
+        player.setExperienceLevels(9999);
+
         Component message = Component.literal("The match has started! Fly to a good spot!");
         player.displayClientMessage(message, true);
     }

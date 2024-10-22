@@ -69,6 +69,7 @@ public class EzRoyale
     private static final HashMap<UUID, Boolean> needsLandingCheck = new HashMap<>();
     private static final HashMap<UUID, Boolean> waitingForRespawn = new HashMap<>();
     private static final HashMap<UUID, Integer> waitingForRespawnTicks = new HashMap<>();
+    private static final HashMap<UUID, Boolean> isDead = new HashMap<>();
 
     // Define mod id in a common place for everything to reference
     public static final String MODID = "ezroyale";
@@ -88,6 +89,7 @@ public class EzRoyale
         needsLandingCheck.clear();
         waitingForRespawn.clear();
         waitingForRespawnTicks.clear();
+        isDead.clear();
         isInSetup = true;
         respawnPos = new Vec3(0, 500, 0);
 
@@ -323,6 +325,12 @@ public class EzRoyale
                 return;
             }
 
+            if (isDead.getOrDefault(player.getUUID(), false)) {
+                // player is dead, force them to spectator
+                player.setGameMode(GameType.SPECTATOR);
+                return;
+            }
+
             if (waitingForRespawn.getOrDefault(player.getUUID(), false)) {
                 int ticks = waitingForRespawnTicks.getOrDefault(player.getUUID(), 0);
                 ticks++;
@@ -342,6 +350,7 @@ public class EzRoyale
                         Component message = Component.literal("You have died, you will not respawn.");
                         player.displayClientMessage(message, true);
                         waitingForRespawn.put(player.getUUID(), false);
+                        isDead.put(player.getUUID(), true);
                     }
                 } else {
                     // respawn player
@@ -427,7 +436,6 @@ public class EzRoyale
 
 
     private static final double BORDER_MOVEMENT_SPEED = 0.05;
-    private static final Random random = new Random();
 
     @SubscribeEvent
     public void onServerTick(TickEvent.ServerTickEvent event) {

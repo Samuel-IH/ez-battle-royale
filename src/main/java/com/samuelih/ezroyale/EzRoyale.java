@@ -275,6 +275,8 @@ public class EzRoyale
         respawnPos = new Vec3(callerPos.x, 400, callerPos.z);
         source.getServer().getPlayerList().getPlayers().forEach(this::launchPlayer);
 
+        world.setWeatherParameters(0, 240000, true, true);
+
         source.sendSuccess(Component.literal("Rampage started!"), true);
         return Command.SINGLE_SUCCESS;
     }
@@ -424,16 +426,18 @@ public class EzRoyale
     }
 
 
-    private static final double BORDER_MOVEMENT_SPEED = 0.1;
+    private static final double BORDER_MOVEMENT_SPEED = 0.05;
     private static final Random random = new Random();
 
     @SubscribeEvent
     public void onServerTick(TickEvent.ServerTickEvent event) {
-        LOGGER.info("Server tick event");
         if (event.phase == TickEvent.Phase.END) {
             return;  // Skip the end phase
         }
-        LOGGER.info("Server tick event end");
+
+        if (isInSetup) {
+            return;  // Skip if the game is in setup
+        }
 
         // Access the overworld (or whichever world you want to manipulate)
         ServerLevel overworld = event.getServer().getLevel(ServerLevel.OVERWORLD);
@@ -442,7 +446,6 @@ public class EzRoyale
             return;  // Skip if the overworld is not loaded
         }
 
-        LOGGER.info("Server tick event end 2");
         tryMoveWorldBorderRandomly(overworld);
     }
 

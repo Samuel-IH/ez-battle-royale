@@ -151,6 +151,8 @@ public class EzRoyale
     @SubscribeEvent
     public void onRegisterCommands(RegisterCommandsEvent event) {
         registerCommands(event.getDispatcher());
+
+        Config.registerConfigCommands(event.getDispatcher());
     }
 
     private void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher) {

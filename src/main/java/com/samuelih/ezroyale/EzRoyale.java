@@ -88,6 +88,12 @@ public class EzRoyale
         waitingForRespawnTicks.clear();
         isInSetup = true;
         respawnPos = new Vec3(0, 500, 0);
+
+        // reset world border
+        var level = Minecraft.getInstance().level;
+        if (level != null) {
+            level.getWorldBorder().setSize(30000000);
+        }
     }
 
     public EzRoyale()
@@ -147,11 +153,67 @@ public class EzRoyale
 
     }
 
+    private void addTeamJoinCommands(CommandDispatcher<CommandSourceStack> dispatcher) {
+        dispatcher.register(
+                Commands.literal("join")
+                        .then(Commands.literal("red")
+                                .executes(context -> {
+                                    return joinTeam(context.getSource(), "Red");
+                                }))
+                        .then(Commands.literal("blue")
+                                .executes(context -> {
+                                    return joinTeam(context.getSource(), "Blue");
+                                }))
+                        .then(Commands.literal("green")
+                                .executes(context -> {
+                                    return joinTeam(context.getSource(), "Green");
+                                }))
+                        .then(Commands.literal("yellow")
+                                .executes(context -> {
+                                    return joinTeam(context.getSource(), "Yellow");
+                                }))
+                        .then(Commands.literal("purple")
+                                .executes(context -> {
+                                    return joinTeam(context.getSource(), "Purple");
+                                }))
+                        .then(Commands.literal("aqua")
+                                .executes(context -> {
+                                    return joinTeam(context.getSource(), "Aqua");
+                                }))
+
+        );
+    }
+
+    private int joinTeam(CommandSourceStack source, String teamName) {
+        if (!isInSetup) {
+            Component message = Component.literal("You can only join a team during setup!");
+            source.sendFailure(message);
+            return 0;
+        }
+
+        var player = source.getPlayer();
+        if (player == null) {
+            return 0;
+        }
+
+        Scoreboard scoreboard = player.getScoreboard();
+        scoreboard.removePlayerFromTeam(player.getScoreboardName());
+        var team = scoreboard.getPlayerTeam(teamName);
+        if (team == null) {
+            return 0;
+        }
+        scoreboard.addPlayerToTeam(player.getScoreboardName(), team);
+
+        Component message = Component.literal("You have joined the " + teamName + " team!");
+
+        return 1;
+    }
+
     // Subscribe to the command registration event
     @SubscribeEvent
     public void onRegisterCommands(RegisterCommandsEvent event) {
         registerCommands(event.getDispatcher());
-
+        addTeamJoinCommands(event.getDispatcher());
         Config.registerConfigCommands(event.getDispatcher());
     }
 
@@ -164,6 +226,14 @@ public class EzRoyale
                                         .executes(context -> {
                                             return startRoyale(context.getSource());
                                         })))
+                        .requires(source -> source.hasPermission(2)) // Only allow ops to run this command
+                        .then(Commands.literal("stop")
+                                .executes(context -> {
+                                    ResetAllMaps();
+                                    Component message = Component.literal("Rampage stopped!");
+                                    context.getSource().sendSuccess(message, true);
+                                    return 1;
+                                }))
         );
     }
 
@@ -176,6 +246,13 @@ public class EzRoyale
         WorldBorder border = world.getWorldBorder();
 
         isInSetup = false;
+
+        // clear and survival all players
+        source.getServer().getPlayerList().getPlayers().forEach(p -> {
+            p.setGameMode(GameType.SURVIVAL);
+            // clear inventory
+            p.getInventory().clearContent();
+        });
 
         // get position of caller
         var callerPos = caller.position();

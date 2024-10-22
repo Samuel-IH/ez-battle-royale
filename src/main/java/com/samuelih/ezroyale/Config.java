@@ -84,7 +84,7 @@ public class Config
                 Commands.literal("ezroyale")
                         .requires(source -> source.hasPermission(2)) // Only allow ops to run this command
                         .then(Commands.literal("config")
-                                .then(Commands.literal("maxWorldBorderSize"))
+                                .then(Commands.literal("maxWorldBorderSize")
                                 .then(Commands.argument("value", DoubleArgumentType.doubleArg(0, 999999))
                                         .executes(ctx -> {
                                             maxWorldBorderSize = DoubleArgumentType.getDouble(ctx, "value");
@@ -95,7 +95,7 @@ public class Config
                                                     false
                                             );
                                             return 1;
-                                        })))
+                                        }))))
         );
 
         dispatcher.register(
@@ -115,7 +115,7 @@ public class Config
                 Commands.literal("ezroyale")
                         .requires(source -> source.hasPermission(2)) // Only allow ops to run this command
                         .then(Commands.literal("config")
-                                .then(Commands.literal("minWorldBorderSize"))
+                                .then(Commands.literal("minWorldBorderSize")
                                 .then(Commands.argument("value", DoubleArgumentType.doubleArg(0, 999999))
                                         .executes(ctx -> {
                                             minWorldBorderSize = DoubleArgumentType.getDouble(ctx, "value");
@@ -126,7 +126,7 @@ public class Config
                                                     false
                                             );
                                             return 1;
-                                        })))
+                                        }))))
         );
 
         dispatcher.register(
@@ -146,7 +146,7 @@ public class Config
                 Commands.literal("ezroyale")
                         .requires(source -> source.hasPermission(2)) // Only allow ops to run this command
                         .then(Commands.literal("config")
-                                .then(Commands.literal("maxRandDistFromCenter"))
+                                .then(Commands.literal("maxRandDistFromCenter")
                                 .then(Commands.argument("value", DoubleArgumentType.doubleArg(0, 1))
                                         .executes(ctx -> {
                                             maxRandDistFromCenter = DoubleArgumentType.getDouble(ctx, "value");
@@ -157,7 +157,7 @@ public class Config
                                                     false
                                             );
                                             return 1;
-                                        })))
+                                        }))))
         );
 
         dispatcher.register(
@@ -177,7 +177,7 @@ public class Config
                 Commands.literal("ezroyale")
                         .requires(source -> source.hasPermission(2)) // Only allow ops to run this command
                         .then(Commands.literal("config")
-                                .then(Commands.literal("teamRespawnTicks"))
+                                .then(Commands.literal("teamRespawnTicks")
                                 .then(Commands.argument("value", IntegerArgumentType.integer(0, 999999))
                                         .executes(ctx -> {
                                             teamRespawnTicks = IntegerArgumentType.getInteger(ctx, "value");
@@ -188,7 +188,7 @@ public class Config
                                                     false
                                             );
                                             return 1;
-                                        })))
+                                        }))))
         );
 
         dispatcher.register(
@@ -208,7 +208,7 @@ public class Config
                 Commands.literal("ezroyale")
                         .requires(source -> source.hasPermission(2)) // Only allow ops to run this command
                         .then(Commands.literal("config")
-                                .then(Commands.literal("shrinkTime"))
+                                .then(Commands.literal("shrinkTime")
                                 .then(Commands.argument("value", DoubleArgumentType.doubleArg(0, 999999))
                                         .executes(ctx -> {
                                             shrinkTime = DoubleArgumentType.getDouble(ctx, "value");
@@ -219,7 +219,7 @@ public class Config
                                                     false
                                             );
                                             return 1;
-                                        })))
+                                        }))))
         );
     }
 }

@@ -505,7 +505,9 @@ public class EzRoyale
 
         // Adjust to move towards the next shift point, at a maximum speed of BORDER_MOVEMENT_SPEED
         double deltaX = Math.min(BORDER_MOVEMENT_SPEED, nextShiftPoint.x - currentX);
+        deltaX = Math.max(-BORDER_MOVEMENT_SPEED, deltaX);
         double deltaZ = Math.min(BORDER_MOVEMENT_SPEED, nextShiftPoint.z - currentZ);
+        deltaZ = Math.max(-BORDER_MOVEMENT_SPEED, deltaZ);
 
         // Set the new world border center
         worldBorder.setCenter(currentX + deltaX, currentZ + deltaZ);
@@ -530,7 +532,7 @@ public class EzRoyale
 
         List<ServerPlayer> players = player.getLevel().players().stream().filter(p -> p != player).toList();
         for (ServerPlayer p : players) {
-            if (scoreboard.getPlayersTeam(p.getScoreboardName()) == team && p != player) {
+            if (scoreboard.getPlayersTeam(p.getScoreboardName()) == team) {
                 sendGlowingPacket(player, p, true);
             } else {
                 sendGlowingPacket(player, p, false);
@@ -542,7 +544,7 @@ public class EzRoyale
 
     public static void sendGlowingPacket(ServerPlayer toPlayer, ServerPlayer glowingPlayer, boolean glowing) {
 
-        // if we are more than 30 chunks away, don't send the packet
+        // if we are more than 5 chunks away, don't send the packet
         var maxDist = 30 * 5;
         if (toPlayer.distanceToSqr(glowingPlayer) > maxDist * maxDist) {
             return;
@@ -578,13 +580,14 @@ public class EzRoyale
         // Modify the glowing flag (bit 6 is the glowing flag)
         byte b0 = data.get(DATA_SHARED_FLAGS_ID);
         if (glowing) {
-            data.set(DATA_SHARED_FLAGS_ID, (byte)(b0 | 1 << 6));
+            b0 = (byte)(b0 | 1 << 6);
         } else {
-            data.set(DATA_SHARED_FLAGS_ID, (byte)(b0 & ~(1 << 6)));
+            b0 = (byte)(b0 & ~(1 << 6));
         }
 
         // Update the player's flags
-        List<SynchedEntityData.DataValue<?>> list = data.packDirty();
+        List<SynchedEntityData.DataValue<?>> list = new ArrayList<>();
+        list.add(SynchedEntityData.DataValue.create(DATA_SHARED_FLAGS_ID, b0));
 
         if (list == null || list.isEmpty()) {
             return;
@@ -596,6 +599,5 @@ public class EzRoyale
         // Send the packet to the target player
         toPlayer.connection.send(packet);
 
-        LOGGER.info("Sent glowing packet to player: " + toPlayer.getName().getString());
     }
 }

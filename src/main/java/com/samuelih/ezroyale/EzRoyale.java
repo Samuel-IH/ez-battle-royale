@@ -2,7 +2,6 @@ package com.samuelih.ezroyale;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.commands.CommandSourceStack;
@@ -187,7 +186,7 @@ public class EzRoyale
     }
 
     // Equip Elytra with Curse of Binding, apply damage resistance, and set NBT flag
-    private int startRoyale(CommandSourceStack source, Vec3 atPosition) throws CommandSyntaxException {
+    private int startRoyale(CommandSourceStack source, Vec3 atPosition) {
         ResetAllMaps();
 
         ServerLevel world = source.getLevel();

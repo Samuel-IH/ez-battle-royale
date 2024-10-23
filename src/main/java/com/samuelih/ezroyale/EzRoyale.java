@@ -7,7 +7,6 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -58,10 +57,14 @@ public class EzRoyale
     private static Vec3 nextShiftPoint = new Vec3(0, 0, 0);// point to shift the storm to
 
     // maps
-    private static final HashMap<UUID, Boolean> needsLandingCheck = new HashMap<>();
-    private static final HashMap<UUID, Boolean> waitingForRespawn = new HashMap<>();
-    private static final HashMap<UUID, Integer> waitingForRespawnTicks = new HashMap<>();
-    private static final HashMap<UUID, Boolean> isDead = new HashMap<>();
+    private static class PlayerData {
+        public boolean needsLandingCheck;
+        public boolean waitingForRespawn;
+        public int waitingForRespawnTicks;
+        public boolean isDead;
+    }
+
+    private static final HashMap<UUID, PlayerData> playerData = new HashMap<>();
 
     // Define mod id in a common place for everything to reference
     public static final String MODID = "ezroyale";
@@ -81,10 +84,7 @@ public class EzRoyale
     private final TeamBuilder teamBuilder = new TeamBuilder();
 
     private static void ResetAllMaps() {
-        needsLandingCheck.clear();
-        waitingForRespawn.clear();
-        waitingForRespawnTicks.clear();
-        isDead.clear();
+        playerData.clear();
         isInSetup = true;
         respawnPos = new Vec3(0, 500, 0);
 
@@ -117,6 +117,11 @@ public class EzRoyale
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Config.SPEC);
 
         ModLoadingContext.get().registerExtensionPoint(IExtensionPoint.DisplayTest.class, () -> new IExtensionPoint.DisplayTest(() -> NetworkConstants.IGNORESERVERONLY, (a, b) -> true));
+    }
+
+    private PlayerData getPlayerData(ServerPlayer player) {
+        UUID uuid = player.getUUID();
+        return playerData.computeIfAbsent(uuid, k -> new PlayerData());
     }
 
     private void commonSetup(final FMLCommonSetupEvent event)
@@ -248,7 +253,7 @@ public class EzRoyale
 
     // Set custom NBT tag to track landing
     private void setLandingCheck(ServerPlayer player) {
-        needsLandingCheck.put(player.getUUID(), true);
+        getPlayerData(player).needsLandingCheck = true;
     }
 
     // Check if the player has landed and remove the Elytra, resistance effect, and NBT tag
@@ -263,16 +268,18 @@ public class EzRoyale
                 return;
             }
 
-            if (isDead.getOrDefault(player.getUUID(), false)) {
+            var data = getPlayerData(player);
+
+            if (data.isDead) {
                 // player is dead, force them to spectator
                 player.setGameMode(GameType.SPECTATOR);
                 return;
             }
 
-            if (waitingForRespawn.getOrDefault(player.getUUID(), false)) {
-                int ticks = waitingForRespawnTicks.getOrDefault(player.getUUID(), 0);
+            if (data.waitingForRespawn) {
+                int ticks = data.waitingForRespawnTicks;
                 ticks++;
-                waitingForRespawnTicks.put(player.getUUID(), ticks);
+                data.waitingForRespawnTicks = ticks;
 
                 if (ticks < Config.teamRespawnTicks) {
                     // set to spectator
@@ -287,14 +294,14 @@ public class EzRoyale
                     } else {
                         Component message = Component.literal("You have died, you will not respawn.");
                         player.displayClientMessage(message, true);
-                        waitingForRespawn.put(player.getUUID(), false);
-                        isDead.put(player.getUUID(), true);
+                        data.waitingForRespawn = false;
+                        data.isDead = true;
                     }
                 } else {
                     // respawn player
                     player.setGameMode(GameType.SURVIVAL);
                     launchPlayer(player);
-                    waitingForRespawn.put(player.getUUID(), false);
+                    data.waitingForRespawn = false;
 
                     DamageSource damageSource = player.getLevel().damageSources().outOfWorld();
 
@@ -315,10 +322,10 @@ public class EzRoyale
             }
 
             // Check if the player needs landing check and has landed on the ground
-            if (needsLandingCheck.getOrDefault(player.getUUID(), false) && player.isOnGround()) {
+            if (data.needsLandingCheck && player.isOnGround()) {
                 removeElytra(player);
                 removeDamageResistance(player);
-                needsLandingCheck.remove(player.getUUID());  // Clear the landing check flag
+                data.needsLandingCheck = false;
 
                 Component message = Component.literal("You have landed, good luck out there!");
 
@@ -345,12 +352,14 @@ public class EzRoyale
 
     @SubscribeEvent
     public void onPlayerDeath(LivingDeathEvent event) {
-        if (event.getEntity() instanceof ServerPlayer player && !isInSetup) {
-            CompoundTag playerData = player.getPersistentData();
-            waitingForRespawn.put(player.getUUID(), true);
-            waitingForRespawnTicks.put(player.getUUID(), 0);
-            LOGGER.info("Player {} has died", player.getName().getString());
+        if (isInSetup) { return; }
+        if (!(event.getEntity() instanceof ServerPlayer player)) {
+            return;
         }
+
+        var playerData = getPlayerData(player);
+        playerData.waitingForRespawn = true;
+        playerData.waitingForRespawnTicks = 0;
     }
 
     // Get living teammates for a player

@@ -4,21 +4,21 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.logging.LogUtils;
+import com.samuelih.ezroyale.config.ConfigCommandMapper;
+import com.samuelih.ezroyale.config.DoubleConfigMapper;
+import com.samuelih.ezroyale.config.IntegerConfigMapper;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.Item;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
-import net.minecraftforge.registries.ForgeRegistries;
+import org.slf4j.Logger;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.function.BiConsumer;
 
 // An example config class. This is not required, but it's a good idea to have one to keep your config organized.
 // Demonstrates how to use Forge's config APIs
@@ -55,9 +55,40 @@ public class Config
     public static int teamRespawnTicks;
     public static double shrinkTime;
 
+    private static class ConfigEntry {
+        public String name;
+        public ArgumentType<?> argType;
+        public BiConsumer<CommandContext<CommandSourceStack>, String> parser;
+    }
+
+    private static ConfigEntry[] configEntries;
+
+    private static ConfigCommandMapper[] configMappers;
+
+    private static final Logger LOGGER = LogUtils.getLogger();
+
     @SubscribeEvent
     static void onLoad(final ModConfigEvent event)
     {
+        configMappers = new ConfigCommandMapper[] {
+                new DoubleConfigMapper("maxWorldBorderSize", MAX_WORLD_BORDER_SIZE_CONFIG, MAX_WORLD_BORDER_SIZE_CONFIG::set, 0, 999999),
+                new DoubleConfigMapper("minWorldBorderSize", MIN_WORLD_BORDER_SIZE_CONFIG, MIN_WORLD_BORDER_SIZE_CONFIG::set, 0, 999),
+                new DoubleConfigMapper("maxRandDistFromCenter", MAX_RAND_DIST_FROM_CENTER_CONFIG, MAX_RAND_DIST_FROM_CENTER_CONFIG::set, 0, 1),
+                new IntegerConfigMapper("teamRespawnTicks", TEAM_RESPAWN_TICKS_CONFIG, TEAM_RESPAWN_TICKS_CONFIG::set, 0, 999999),
+                new DoubleConfigMapper("shrinkTime", SHRINK_TIME_CONFIG, SHRINK_TIME_CONFIG::set, 0, 999999)
+        };
+
+        for (ConfigCommandMapper mapper : configMappers) {
+            mapper.onConfigChanged = () -> {
+                SPEC.save();
+                updateValues();
+            };
+        }
+
+        updateValues();
+    }
+
+    private static void updateValues() {
         maxWorldBorderSize = MAX_WORLD_BORDER_SIZE_CONFIG.get();
         minWorldBorderSize = MIN_WORLD_BORDER_SIZE_CONFIG.get();
         maxRandDistFromCenter = MAX_RAND_DIST_FROM_CENTER_CONFIG.get();
@@ -67,159 +98,8 @@ public class Config
 
     // Register commands for config
     public static void registerConfigCommands(CommandDispatcher<CommandSourceStack> dispatcher) {
-        dispatcher.register(
-                Commands.literal("ezroyale")
-                        .requires(source -> source.hasPermission(2)) // Only allow ops to run this command
-                        .then(Commands.literal("config")
-                                .then(Commands.literal("maxWorldBorderSize")
-                                        .executes(ctx -> {
-                                            ctx.getSource().sendSuccess(
-                                                    Component.literal("Current maxWorldBorderSize: " + maxWorldBorderSize),
-                                                    false
-                                            );
-                                            return 1;
-                                        })))
-        );
-        dispatcher.register(
-                Commands.literal("ezroyale")
-                        .requires(source -> source.hasPermission(2)) // Only allow ops to run this command
-                        .then(Commands.literal("config")
-                                .then(Commands.literal("maxWorldBorderSize")
-                                .then(Commands.argument("value", DoubleArgumentType.doubleArg(0, 999999))
-                                        .executes(ctx -> {
-                                            maxWorldBorderSize = DoubleArgumentType.getDouble(ctx, "value");
-                                            MAX_WORLD_BORDER_SIZE_CONFIG.set(maxWorldBorderSize);
-                                            SPEC.save();
-                                            ctx.getSource().sendSuccess(
-                                                    Component.literal("Set maxWorldBorderSize to " + maxWorldBorderSize),
-                                                    false
-                                            );
-                                            return 1;
-                                        }))))
-        );
-
-        dispatcher.register(
-                Commands.literal("ezroyale")
-                        .requires(source -> source.hasPermission(2)) // Only allow ops to run this command
-                        .then(Commands.literal("config")
-                                .then(Commands.literal("minWorldBorderSize")
-                                        .executes(ctx -> {
-                                            ctx.getSource().sendSuccess(
-                                                    Component.literal("Current minWorldBorderSize: " + minWorldBorderSize),
-                                                    false
-                                            );
-                                            return 1;
-                                        })))
-        );
-        dispatcher.register(
-                Commands.literal("ezroyale")
-                        .requires(source -> source.hasPermission(2)) // Only allow ops to run this command
-                        .then(Commands.literal("config")
-                                .then(Commands.literal("minWorldBorderSize")
-                                .then(Commands.argument("value", DoubleArgumentType.doubleArg(0, 999999))
-                                        .executes(ctx -> {
-                                            minWorldBorderSize = DoubleArgumentType.getDouble(ctx, "value");
-                                            MIN_WORLD_BORDER_SIZE_CONFIG.set(minWorldBorderSize);
-                                            SPEC.save();
-                                            ctx.getSource().sendSuccess(
-                                                    Component.literal("Set minWorldBorderSize to " + minWorldBorderSize),
-                                                    false
-                                            );
-                                            return 1;
-                                        }))))
-        );
-
-        dispatcher.register(
-                Commands.literal("ezroyale")
-                        .requires(source -> source.hasPermission(2)) // Only allow ops to run this command
-                        .then(Commands.literal("config")
-                                .then(Commands.literal("maxRandDistFromCenter")
-                                        .executes(ctx -> {
-                                            ctx.getSource().sendSuccess(
-                                                    Component.literal("Current maxRandDistFromCenter: " + maxRandDistFromCenter),
-                                                    false
-                                            );
-                                            return 1;
-                                        })))
-        );
-        dispatcher.register(
-                Commands.literal("ezroyale")
-                        .requires(source -> source.hasPermission(2)) // Only allow ops to run this command
-                        .then(Commands.literal("config")
-                                .then(Commands.literal("maxRandDistFromCenter")
-                                .then(Commands.argument("value", DoubleArgumentType.doubleArg(0, 1))
-                                        .executes(ctx -> {
-                                            maxRandDistFromCenter = DoubleArgumentType.getDouble(ctx, "value");
-                                            MAX_RAND_DIST_FROM_CENTER_CONFIG.set(maxRandDistFromCenter);
-                                            SPEC.save();
-                                            ctx.getSource().sendSuccess(
-                                                    Component.literal("Set maxRandDistFromCenter to " + maxRandDistFromCenter),
-                                                    false
-                                            );
-                                            return 1;
-                                        }))))
-        );
-
-        dispatcher.register(
-                Commands.literal("ezroyale")
-                        .requires(source -> source.hasPermission(2)) // Only allow ops to run this command
-                        .then(Commands.literal("config")
-                                .then(Commands.literal("teamRespawnTicks")
-                                        .executes(ctx -> {
-                                            ctx.getSource().sendSuccess(
-                                                    Component.literal("Current teamRespawnTicks: " + teamRespawnTicks),
-                                                    false
-                                            );
-                                            return 1;
-                                        })))
-        );
-        dispatcher.register(
-                Commands.literal("ezroyale")
-                        .requires(source -> source.hasPermission(2)) // Only allow ops to run this command
-                        .then(Commands.literal("config")
-                                .then(Commands.literal("teamRespawnTicks")
-                                .then(Commands.argument("value", IntegerArgumentType.integer(0, 999999))
-                                        .executes(ctx -> {
-                                            teamRespawnTicks = IntegerArgumentType.getInteger(ctx, "value");
-                                            TEAM_RESPAWN_TICKS_CONFIG.set(teamRespawnTicks);
-                                            SPEC.save();
-                                            ctx.getSource().sendSuccess(
-                                                    Component.literal("Set teamRespawnTicks to " + teamRespawnTicks),
-                                                    false
-                                            );
-                                            return 1;
-                                        }))))
-        );
-
-        dispatcher.register(
-                Commands.literal("ezroyale")
-                        .requires(source -> source.hasPermission(2)) // Only allow ops to run this command
-                        .then(Commands.literal("config")
-                                .then(Commands.literal("shrinkTime")
-                                        .executes(ctx -> {
-                                            ctx.getSource().sendSuccess(
-                                                    Component.literal("Current shrinkTime: " + shrinkTime),
-                                                    false
-                                            );
-                                            return 1;
-                                        })))
-        );
-        dispatcher.register(
-                Commands.literal("ezroyale")
-                        .requires(source -> source.hasPermission(2)) // Only allow ops to run this command
-                        .then(Commands.literal("config")
-                                .then(Commands.literal("shrinkTime")
-                                .then(Commands.argument("value", DoubleArgumentType.doubleArg(0, 999999))
-                                        .executes(ctx -> {
-                                            shrinkTime = DoubleArgumentType.getDouble(ctx, "value");
-                                            SHRINK_TIME_CONFIG.set(shrinkTime);
-                                            SPEC.save();
-                                            ctx.getSource().sendSuccess(
-                                                    Component.literal("Set shrinkTime to " + shrinkTime),
-                                                    false
-                                            );
-                                            return 1;
-                                        }))))
-        );
+        for (ConfigCommandMapper mapper : configMappers) {
+            mapper.registerConfigCommands(dispatcher);
+        }
     }
 }

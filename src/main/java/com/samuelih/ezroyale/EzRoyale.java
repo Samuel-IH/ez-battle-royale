@@ -54,6 +54,7 @@ import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 import net.minecraftforge.network.NetworkConstants;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.registries.DeferredRegister;
@@ -540,15 +541,20 @@ public class EzRoyale
     protected static EntityDataAccessor<Byte> DATA_SHARED_FLAGS_ID = null;
 
     public static void sendGlowingPacket(ServerPlayer toPlayer, ServerPlayer glowingPlayer, boolean glowing) {
+
+        // if we are more than 30 chunks away, don't send the packet
+        var maxDist = 30 * 5;
+        if (toPlayer.distanceToSqr(glowingPlayer) > maxDist * maxDist) {
+            return;
+        }
+
         // Retrieve the data watcher (synched entity data) from the glowing player
         SynchedEntityData data = glowingPlayer.getEntityData();
-
-
 
         if (DATA_SHARED_FLAGS_ID == null) {
             Field field;
             try {
-                field = Class.forName("net.minecraft.world.entity.Entity").getDeclaredField("DATA_SHARED_FLAGS_ID");
+                field = ObfuscationReflectionHelper.findField(Entity.class, "f_19805_");
                 field.setAccessible(true);
 
                 var value = field.get(null);
@@ -561,8 +567,12 @@ public class EzRoyale
                 }
 
             } catch (Exception e) {
-                e.printStackTrace();
+                LOGGER.error("Failed to get DATA_SHARED_FLAGS_ID field", e);
             }
+        }
+
+        if (DATA_SHARED_FLAGS_ID == null) {
+            return;
         }
 
         // Modify the glowing flag (bit 6 is the glowing flag)
@@ -585,5 +595,7 @@ public class EzRoyale
 
         // Send the packet to the target player
         toPlayer.connection.send(packet);
+
+        LOGGER.info("Sent glowing packet to player: " + toPlayer.getName().getString());
     }
 }

@@ -4,7 +4,6 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.logging.LogUtils;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -79,6 +78,7 @@ public class EzRoyale
     public static final RegistryObject<Item> EXAMPLE_BLOCK_ITEM = ITEMS.register("example_block", () -> new BlockItem(EXAMPLE_BLOCK.get(), new Item.Properties()));
 
     private final TeamGlow teamGlow = new TeamGlow(true);
+    private final TeamBuilder teamBuilder = new TeamBuilder();
 
     private static void ResetAllMaps() {
         needsLandingCheck.clear();
@@ -141,79 +141,12 @@ public class EzRoyale
         // Do something when the server starts
         LOGGER.info("HELLO from server starting");
 
-        // Create 6 teams, one for each colors
-        Scoreboard scoreboard = event.getServer().getScoreboard();
-        scoreboard.addPlayerTeam("Red").setColor(ChatFormatting.RED);
-        scoreboard.addPlayerTeam("Blue").setColor(ChatFormatting.BLUE);
-        scoreboard.addPlayerTeam("Green").setColor(ChatFormatting.GREEN);
-        scoreboard.addPlayerTeam("Yellow").setColor(ChatFormatting.YELLOW);
-        scoreboard.addPlayerTeam("Purple").setColor(ChatFormatting.DARK_PURPLE);
-        scoreboard.addPlayerTeam("Aqua").setColor(ChatFormatting.AQUA);
-
-    }
-
-    private void addTeamJoinCommands(CommandDispatcher<CommandSourceStack> dispatcher) {
-        dispatcher.register(
-                Commands.literal("join")
-                        .then(Commands.literal("red")
-                                .executes(context -> {
-                                    return joinTeam(context.getSource(), "Red");
-                                }))
-                        .then(Commands.literal("blue")
-                                .executes(context -> {
-                                    return joinTeam(context.getSource(), "Blue");
-                                }))
-                        .then(Commands.literal("green")
-                                .executes(context -> {
-                                    return joinTeam(context.getSource(), "Green");
-                                }))
-                        .then(Commands.literal("yellow")
-                                .executes(context -> {
-                                    return joinTeam(context.getSource(), "Yellow");
-                                }))
-                        .then(Commands.literal("purple")
-                                .executes(context -> {
-                                    return joinTeam(context.getSource(), "Purple");
-                                }))
-                        .then(Commands.literal("aqua")
-                                .executes(context -> {
-                                    return joinTeam(context.getSource(), "Aqua");
-                                }))
-
-        );
-    }
-
-    private int joinTeam(CommandSourceStack source, String teamName) {
-        if (!isInSetup) {
-            Component message = Component.literal("You can only join a team during setup!");
-            source.sendFailure(message);
-            return 0;
-        }
-
-        var player = source.getPlayer();
-        if (player == null) {
-            return 0;
-        }
-
-        Scoreboard scoreboard = player.getScoreboard();
-        scoreboard.removePlayerFromTeam(player.getScoreboardName());
-        var team = scoreboard.getPlayerTeam(teamName);
-        if (team == null) {
-            return 0;
-        }
-        scoreboard.addPlayerToTeam(player.getScoreboardName(), team);
-
-        Component message = Component.literal("You have joined the " + teamName + " team!");
-        source.sendSuccess(message, true);
-
-        return 1;
     }
 
     // Subscribe to the command registration event
     @SubscribeEvent
     public void onRegisterCommands(RegisterCommandsEvent event) {
         registerCommands(event.getDispatcher());
-        addTeamJoinCommands(event.getDispatcher());
         Config.registerConfigCommands(event.getDispatcher());
     }
 
@@ -447,6 +380,8 @@ public class EzRoyale
         if (event.phase == TickEvent.Phase.END) {
             return;  // Skip the end phase
         }
+
+        teamBuilder.allowSwitching = isInSetup;
 
         // Access the overworld (or whichever world you want to manipulate)
         ServerLevel overworld = event.getServer().getLevel(ServerLevel.OVERWORLD);

@@ -2,21 +2,15 @@ package com.samuelih.ezroyale;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.ArgumentType;
-import com.mojang.brigadier.arguments.DoubleArgumentType;
-import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
-import com.mojang.logging.LogUtils;
 import com.samuelih.ezroyale.config.ConfigCommandMapper;
 import com.samuelih.ezroyale.config.DoubleConfigMapper;
 import com.samuelih.ezroyale.config.IntegerConfigMapper;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
-import net.minecraft.network.chat.Component;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
-import org.slf4j.Logger;
 
 import java.util.function.BiConsumer;
 
@@ -61,11 +55,7 @@ public class Config
         public BiConsumer<CommandContext<CommandSourceStack>, String> parser;
     }
 
-    private static ConfigEntry[] configEntries;
-
     private static ConfigCommandMapper[] configMappers;
-
-    private static final Logger LOGGER = LogUtils.getLogger();
 
     @SubscribeEvent
     static void onLoad(final ModConfigEvent event)

@@ -1,12 +1,10 @@
 package com.samuelih.ezroyale.config;
 
 
-import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.network.chat.Component;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;

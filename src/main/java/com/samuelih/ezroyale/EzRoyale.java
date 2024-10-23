@@ -3,7 +3,6 @@ package com.samuelih.ezroyale;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.logging.LogUtils;
-import net.minecraft.client.Minecraft;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -83,13 +82,12 @@ public class EzRoyale
     private final TeamGlow teamGlow = new TeamGlow(true);
     private final TeamBuilder teamBuilder = new TeamBuilder();
 
-    private static void ResetAllMaps() {
+    private static void ResetGame(ServerLevel level) {
         playerData.clear();
         isInSetup = true;
         respawnPos = new Vec3(0, 500, 0);
 
         // reset world border
-        var level = Minecraft.getInstance().level;
         if (level != null) {
             level.getWorldBorder().setSize(30000000);
         }
@@ -128,9 +126,6 @@ public class EzRoyale
     {
         // Some common setup code
         LOGGER.info("HELLO FROM COMMON SETUP");
-
-        // Reset all maps
-        ResetAllMaps();
     }
 
     private void addCreative(CreativeModeTabEvent.BuildContents event)
@@ -177,7 +172,7 @@ public class EzRoyale
                         .requires(source -> source.hasPermission(2)) // Only allow ops to run this command
                         .then(Commands.literal("stop")
                                 .executes(context -> {
-                                    ResetAllMaps();
+                                    ResetGame(context.getSource().getLevel());
                                     Component message = Component.literal("Rampage stopped!");
                                     context.getSource().sendSuccess(message, true);
                                     return 1;
@@ -187,10 +182,10 @@ public class EzRoyale
 
     // Equip Elytra with Curse of Binding, apply damage resistance, and set NBT flag
     private int startRoyale(CommandSourceStack source, Vec3 atPosition) {
-        ResetAllMaps();
-
         ServerLevel world = source.getLevel();
         WorldBorder border = world.getWorldBorder();
+
+        ResetGame(world);
 
         isInSetup = false;
 

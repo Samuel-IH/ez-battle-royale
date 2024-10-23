@@ -1,8 +1,6 @@
 package com.samuelih.ezroyale;
 
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.ArgumentType;
-import com.mojang.brigadier.context.CommandContext;
 import com.samuelih.ezroyale.config.ConfigCommandMapper;
 import com.samuelih.ezroyale.config.DoubleConfigMapper;
 import com.samuelih.ezroyale.config.IntegerConfigMapper;
@@ -11,8 +9,6 @@ import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
-
-import java.util.function.BiConsumer;
 
 // An example config class. This is not required, but it's a good idea to have one to keep your config organized.
 // Demonstrates how to use Forge's config APIs
@@ -48,12 +44,6 @@ public class Config
     public static double maxRandDistFromCenter;
     public static int teamRespawnTicks;
     public static double shrinkTime;
-
-    private static class ConfigEntry {
-        public String name;
-        public ArgumentType<?> argType;
-        public BiConsumer<CommandContext<CommandSourceStack>, String> parser;
-    }
 
     private static ConfigCommandMapper[] configMappers;
 

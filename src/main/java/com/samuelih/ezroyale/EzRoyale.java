@@ -216,6 +216,7 @@ public class EzRoyale
         scoreboard.addPlayerToTeam(player.getScoreboardName(), team);
 
         Component message = Component.literal("You have joined the " + teamName + " team!");
+        source.sendSuccess(message, true);
 
         return 1;
     }

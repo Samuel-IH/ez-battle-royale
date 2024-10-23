@@ -80,6 +80,7 @@ public class EzRoyale
     // Creates a new BlockItem with the id "ezroyale:example_block", combining the namespace and path
     public static final RegistryObject<Item> EXAMPLE_BLOCK_ITEM = ITEMS.register("example_block", () -> new BlockItem(EXAMPLE_BLOCK.get(), new Item.Properties()));
 
+    @SuppressWarnings("unused")
     private final TeamGlow teamGlow = new TeamGlow(true);
     private final TeamBuilder teamBuilder = new TeamBuilder();
 

@@ -15,7 +15,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.GameType;
-import net.minecraft.world.level.border.WorldBorder;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Scoreboard;
@@ -42,9 +41,7 @@ import java.util.UUID;
 @Mod(EzRoyale.MODID)
 public class EzRoyale
 {
-    private static boolean isInSetup = true;
-    private static Vec3 respawnPos = new Vec3(0, 500, 0);
-    private static Vec3 nextShiftPoint = new Vec3(0, 0, 0);// point to shift the storm to
+    private static boolean isInSetup = true;// point to shift the storm to
 
     // maps
     private static class PlayerData {
@@ -64,15 +61,15 @@ public class EzRoyale
     @SuppressWarnings("unused")
     private final TeamGlow teamGlow = new TeamGlow(true);
     private final TeamBuilder teamBuilder = new TeamBuilder();
+    private final ShrinkingStorm storm = new ShrinkingStorm();
 
-    private static void ResetGame(ServerLevel level) {
+    private void ResetGame(ServerLevel level) {
         playerData.clear();
         isInSetup = true;
-        respawnPos = new Vec3(0, 500, 0);
 
         // reset world border
         if (level != null) {
-            level.getWorldBorder().setSize(30000000);
+            storm.reset(level);
         }
     }
 
@@ -150,7 +147,6 @@ public class EzRoyale
     // Equip Elytra with Curse of Binding, apply damage resistance, and set NBT flag
     private int startRoyale(CommandSourceStack source, Vec3 atPosition) {
         ServerLevel world = source.getLevel();
-        WorldBorder border = world.getWorldBorder();
 
         ResetGame(world);
 
@@ -163,20 +159,9 @@ public class EzRoyale
             p.getInventory().clearContent();
         });
 
-        // get random position in circle around caller with radius of MAX_RAND_DIST_FROM_CENTER * MAX_WORLD_BORDER_SIZE\
-        var randDist = Math.random() * Config.maxRandDistFromCenter * Config.maxWorldBorderSize;
-        var randAngle = Math.random() * 2 * Math.PI;
-        var targetPos = new Vec3(atPosition.x + randDist * Math.cos(randAngle), 0, atPosition.z + randDist * Math.sin(randAngle));
-        nextShiftPoint = targetPos;
+        atPosition = new Vec3(atPosition.x, 400, atPosition.z);
+        storm.start(world, atPosition);
 
-        // set world border center to caller position
-        border.setCenter(targetPos.x, targetPos.z);
-        border.setSize(Config.maxWorldBorderSize);  // set world border size to 1000 blocks
-
-        // begin shrinkage
-        border.lerpSizeBetween(Config.maxWorldBorderSize, Config.minWorldBorderSize, (int)(Config.shrinkTime * 60 * 1000));  // shrink world border to 100 blocks over 100 seconds
-
-        respawnPos = new Vec3(atPosition.x, 400, atPosition.z);
         source.getServer().getPlayerList().getPlayers().forEach(this::launchPlayer);
 
         world.setWeatherParameters(0, 240000, true, true);
@@ -186,6 +171,7 @@ public class EzRoyale
     }
 
     private void launchPlayer(ServerPlayer player) {
+        var respawnPos = storm.getSpawnCenter(player.getLevel());
         player.teleportTo(respawnPos.x, respawnPos.y, respawnPos.z);
         equipElytra(player);
         applyDamageResistance(player);
@@ -246,6 +232,7 @@ public class EzRoyale
                 if (ticks < Config.teamRespawnTicks) {
                     // set to spectator
                     player.setGameMode(GameType.SPECTATOR);
+                    var respawnPos = storm.getSpawnCenter(player.getLevel());
                     player.teleportTo(respawnPos.x, respawnPos.y, respawnPos.z);
 
                     // show action bar message
@@ -343,9 +330,6 @@ public class EzRoyale
         return false;
     }
 
-
-    private static final double BORDER_MOVEMENT_SPEED = 0.05;
-
     @SubscribeEvent
     public void onServerTick(TickEvent.ServerTickEvent event) {
         if (event.phase == TickEvent.Phase.END) {
@@ -364,45 +348,6 @@ public class EzRoyale
             return;  // Skip if the game is in setup
         }
 
-        tryMoveWorldBorderRandomly(overworld);
-    }
-
-
-    private void tryMoveWorldBorderRandomly(ServerLevel overworld) {
-        WorldBorder worldBorder = overworld.getWorldBorder();
-
-        // Check if the world border has reached or is near the minimum size
-        if (!(worldBorder.getSize() <= Config.minWorldBorderSize + 1)) { return; }
-
-        // Make the border move randomly
-        moveWorldBorderRandomly(worldBorder);
-    }
-
-    // Move the world border randomly once it reaches the minimum size
-    private void moveWorldBorderRandomly(WorldBorder worldBorder) {
-        // Random movement logic
-        double currentX = worldBorder.getCenterX();
-        double currentZ = worldBorder.getCenterZ();
-
-        // get distance from next shift point
-        double dist = Math.sqrt(Math.pow(currentX - nextShiftPoint.x, 2) + Math.pow(currentZ - nextShiftPoint.z, 2));
-
-        // if close enough, set new shift point
-        if (dist < 1) {
-            var randDist = Math.random() * Config.maxRandDistFromCenter * Config.maxWorldBorderSize;
-            var randAngle = Math.random() * 2 * Math.PI;
-            nextShiftPoint = new Vec3(currentX + randDist * Math.cos(randAngle), 0, currentZ + randDist * Math.sin(randAngle));
-        }
-
-        // Adjust to move towards the next shift point, at a maximum speed of BORDER_MOVEMENT_SPEED
-        double deltaX = Math.min(BORDER_MOVEMENT_SPEED, nextShiftPoint.x - currentX);
-        deltaX = Math.max(-BORDER_MOVEMENT_SPEED, deltaX);
-        double deltaZ = Math.min(BORDER_MOVEMENT_SPEED, nextShiftPoint.z - currentZ);
-        deltaZ = Math.max(-BORDER_MOVEMENT_SPEED, deltaZ);
-
-        // Set the new world border center
-        worldBorder.setCenter(currentX + deltaX, currentZ + deltaZ);
-        worldBorder.setSize(Config.minWorldBorderSize);
-
+        storm.tickStorm(overworld);
     }
 }

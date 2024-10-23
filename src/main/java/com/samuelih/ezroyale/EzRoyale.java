@@ -10,15 +10,11 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
-import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.GameType;
@@ -43,15 +39,16 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 import net.minecraftforge.network.NetworkConstants;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 import org.slf4j.Logger;
 
-import java.lang.reflect.Field;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Random;
+import java.util.UUID;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(EzRoyale.MODID)
@@ -80,6 +77,8 @@ public class EzRoyale
     public static final RegistryObject<Block> EXAMPLE_BLOCK = BLOCKS.register("example_block", () -> new Block(BlockBehaviour.Properties.of(Material.STONE)));
     // Creates a new BlockItem with the id "ezroyale:example_block", combining the namespace and path
     public static final RegistryObject<Item> EXAMPLE_BLOCK_ITEM = ITEMS.register("example_block", () -> new BlockItem(EXAMPLE_BLOCK.get(), new Item.Properties()));
+
+    private final TeamGlow teamGlow = new TeamGlow(true);
 
     private static void ResetAllMaps() {
         needsLandingCheck.clear();
@@ -455,8 +454,6 @@ public class EzRoyale
             return;  // Skip if the overworld is not loaded
         }
 
-        updateGlowForAllPlayers(overworld);
-
         if (isInSetup) {
             return;  // Skip if the game is in setup
         }
@@ -500,92 +497,6 @@ public class EzRoyale
         // Set the new world border center
         worldBorder.setCenter(currentX + deltaX, currentZ + deltaZ);
         worldBorder.setSize(Config.minWorldBorderSize);
-
-    }
-
-    private void updateGlowForAllPlayers(ServerLevel level) {
-        List<ServerPlayer> players = level.players();
-        for (ServerPlayer player : players) {
-            updateGlowForPlayer(player);
-        }
-    }
-
-    /// Loops through each player, if the player is on `player`s team set to glow, else set to not glow
-    private void updateGlowForPlayer(ServerPlayer player) {
-        Scoreboard scoreboard = player.getScoreboard();
-        PlayerTeam team = scoreboard.getPlayersTeam(player.getScoreboardName());
-        if (team == null) {
-            return;
-        }
-
-        List<ServerPlayer> players = player.getLevel().players().stream().filter(p -> p != player).toList();
-        for (ServerPlayer p : players) {
-            if (scoreboard.getPlayersTeam(p.getScoreboardName()) == team) {
-                sendGlowingPacket(player, p, true);
-            } else {
-                sendGlowingPacket(player, p, false);
-            }
-        }
-    }
-
-    protected static EntityDataAccessor<Byte> DATA_SHARED_FLAGS_ID = null;
-
-    public static void sendGlowingPacket(ServerPlayer toPlayer, ServerPlayer glowingPlayer, boolean glowing) {
-
-        // if we are more than 5 chunks away, don't send the packet
-        var maxDist = 30 * 5;
-        if (toPlayer.distanceToSqr(glowingPlayer) > maxDist * maxDist) {
-            return;
-        }
-
-        // Retrieve the data watcher (synched entity data) from the glowing player
-        SynchedEntityData data = glowingPlayer.getEntityData();
-
-        if (DATA_SHARED_FLAGS_ID == null) {
-            Field field;
-            try {
-                field = ObfuscationReflectionHelper.findField(Entity.class, "f_19805_");
-                field.setAccessible(true);
-
-                var value = field.get(null);
-                if (value == null) {
-                    return;
-                }
-                var reflectedField = (EntityDataAccessor<Byte>) value;
-                if (reflectedField != null) {
-                    DATA_SHARED_FLAGS_ID = reflectedField;
-                }
-
-            } catch (Exception e) {
-                LOGGER.error("Failed to get DATA_SHARED_FLAGS_ID field", e);
-            }
-        }
-
-        if (DATA_SHARED_FLAGS_ID == null) {
-            return;
-        }
-
-        // Modify the glowing flag (bit 6 is the glowing flag)
-        byte b0 = data.get(DATA_SHARED_FLAGS_ID);
-        if (glowing) {
-            b0 = (byte)(b0 | 1 << 6);
-        } else {
-            b0 = (byte)(b0 & ~(1 << 6));
-        }
-
-        // Update the player's flags
-        List<SynchedEntityData.DataValue<?>> list = new ArrayList<>();
-        list.add(SynchedEntityData.DataValue.create(DATA_SHARED_FLAGS_ID, b0));
-
-        if (list == null || list.isEmpty()) {
-            return;
-        }
-
-        // Create a packet to update the metadata (which includes the glowing flag)
-        ClientboundSetEntityDataPacket packet = new ClientboundSetEntityDataPacket(glowingPlayer.getId(), list);
-
-        // Send the packet to the target player
-        toPlayer.connection.send(packet);
 
     }
 }

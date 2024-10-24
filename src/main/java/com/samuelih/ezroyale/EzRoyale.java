@@ -32,15 +32,14 @@ public class EzRoyale
     // Directly reference a slf4j logger
     private static final Logger LOGGER = LogUtils.getLogger();
 
+    private final GameState gameState = new GameState();
+
     private final TeamBuilder teamBuilder = new TeamBuilder();
     private final ShrinkingStorm storm = new ShrinkingStorm();
-    private final StormPlayerController playerController = new StormPlayerController(storm);
-
-    private BrGameState gameState = BrGameState.SETUP;
-    private long loadTicks = 0;
+    private final StormPlayerController playerController = new StormPlayerController(storm, gameState);
 
     private void ResetGame(ServerLevel level) {
-        changeState(level, BrGameState.SETUP);
+        gameState.setPhase(level, GamePhase.SETUP);
 
         // reset world border
         if (level != null) {
@@ -48,12 +47,10 @@ public class EzRoyale
         }
     }
 
-    private void changeState(ServerLevel level, BrGameState newState) {
-        gameState = newState;
-        playerController.changeState(level, newState);
-        teamBuilder.allowSwitching = newState == BrGameState.SETUP;
+    private void onChangePhase(ServerLevel level, GamePhase newPhase) {
+        teamBuilder.allowSwitching = newPhase == GamePhase.SETUP;
 
-        if (newState == BrGameState.RUNNING) {
+        if (newPhase == GamePhase.RUNNING) {
             storm.start(level);
         }
     }
@@ -74,6 +71,8 @@ public class EzRoyale
 
         // Register our mod's ForgeConfigSpec so that Forge can create and load the config file for us
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+
+        gameState.addPhaseChangeListener(this::onChangePhase);
     }
 
     private void commonSetup(final FMLCommonSetupEvent event)
@@ -132,12 +131,12 @@ public class EzRoyale
         ServerLevel world = source.getLevel();
 
         ResetGame(world);
-        changeState(world, BrGameState.LOADING);
+        gameState.setPhase(world, GamePhase.LOADING);
 
         atPosition = new Vec3(atPosition.x, 400, atPosition.z);
         storm.prepare(world, atPosition);
 
-        loadTicks = 0;
+        gameState.loadTicks = 20 * 10;
 
         source.sendSuccess(Component.literal("Battle started!"), true);
         return Command.SINGLE_SUCCESS;
@@ -147,21 +146,21 @@ public class EzRoyale
     public void onServerTick(TickEvent.ServerTickEvent event) {
         if (event.phase == TickEvent.Phase.END) { return; }
 
-        teamBuilder.allowSwitching = gameState == BrGameState.SETUP;
+        teamBuilder.allowSwitching = gameState.getPhase() == GamePhase.SETUP;
 
         var level = event.getServer().getLevel(ServerLevel.OVERWORLD);
         if (level == null) { return; }
 
-        if (gameState == BrGameState.LOADING) {
-            loadTicks++;
-            if (loadTicks > 20 * 10) {
-                changeState(level, BrGameState.RUNNING);
+        if (gameState.getPhase() == GamePhase.LOADING) {
+            gameState.loadTicks--;
+            if (gameState.loadTicks <= 0) {
+                gameState.setPhase(level, GamePhase.RUNNING);
             }
         }
 
         playerController.tick(level);
 
-        if (gameState == BrGameState.RUNNING) {
+        if (gameState.getPhase() == GamePhase.RUNNING) {
             storm.tickStorm(level);
         }
     }

@@ -31,16 +31,17 @@ public class StormPlayerController {
 
     private final HashMap<UUID, PlayerData> playerData = new HashMap<>();
 
-    private BrGameState state = BrGameState.SETUP;
+    private final GameState gameState;
     private final ShrinkingStorm storm;
 
-    public StormPlayerController(ShrinkingStorm storm) {
+    public StormPlayerController(ShrinkingStorm storm, GameState gameState) {
         this.storm = storm;
+        this.gameState = gameState;
+
+        gameState.addPhaseChangeListener(this::onChangePhase);
     }
 
-    public void changeState(ServerLevel level, BrGameState newState) {
-        state = newState;
-
+    public void onChangePhase(ServerLevel level, GamePhase newState) {
         switch (newState) {
             case SETUP:
                 playerData.clear();
@@ -60,7 +61,7 @@ public class StormPlayerController {
     public void tick(ServerLevel level) {
         var players = level.players();
 
-        switch (state) {
+        switch (gameState.getPhase()) {
             case SETUP:
                 tickSetup(players);
                 break;
@@ -112,6 +113,12 @@ public class StormPlayerController {
 
             // clear inventory
             player.getInventory().clearContent();
+
+            // show countdown
+            int ticks = gameState.loadTicks;
+            int seconds = ticks / 20;
+            Component message = Component.literal("Game starting in " + seconds + " seconds.");
+            player.displayClientMessage(message, true);
         }
     }
 
@@ -227,7 +234,7 @@ public class StormPlayerController {
 
     @SubscribeEvent
     public void onPlayerDeath(LivingDeathEvent event) {
-        if (state != BrGameState.RUNNING) { return; }
+        if (gameState.getPhase() != GamePhase.RUNNING) { return; }
         if (!(event.getEntity() instanceof ServerPlayer player)) {
             return;
         }

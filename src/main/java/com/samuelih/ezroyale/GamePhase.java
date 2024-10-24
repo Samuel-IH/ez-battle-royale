@@ -1,6 +1,6 @@
 package com.samuelih.ezroyale;
 
-public enum BrGameState {
+public enum GamePhase {
     SETUP,
     LOADING,
     RUNNING,

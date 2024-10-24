@@ -17,7 +17,7 @@ public class ShrinkingStorm {
         level.setWeatherParameters(0, 240000, false, false);
     }
 
-    public void start(ServerLevel level, Vec3 center) {
+    public void prepare(ServerLevel level, Vec3 center) {
         spawnCenter = center;
 
         // randomize the center by a bit, to make it so that you can't know for sure where the center is until late game
@@ -28,8 +28,11 @@ public class ShrinkingStorm {
         level.getWorldBorder().setSize(Config.maxWorldBorderSize);
         level.getWorldBorder().setCenter(targetPos.x, targetPos.z);
 
-        level.getWorldBorder().lerpSizeBetween(Config.maxWorldBorderSize, Config.minWorldBorderSize, (int)(Config.shrinkTime * 60 * 1000));
         level.setWeatherParameters(0, 240000, true, true);
+    }
+
+    public void start(ServerLevel level) {
+        level.getWorldBorder().lerpSizeBetween(Config.maxWorldBorderSize, Config.minWorldBorderSize, (int)(Config.shrinkTime * 60 * 1000));
     }
 
     // if the spawnCenter is not inside the storm's boundaries, it will return the storm's center

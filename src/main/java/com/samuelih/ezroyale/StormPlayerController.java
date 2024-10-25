@@ -85,13 +85,20 @@ public class StormPlayerController {
             // update hunger to max
             player.getFoodData().setFoodLevel(20);
 
-            // clear inventory
-            player.getInventory().clearContent();
+            // if not op, clear inventory
+            if (!player.hasPermissions(2)) {
+                player.getInventory().clearContent();
+            }
 
             // if not op, and more than 10 blocks away from world spawn, tp to world spawn
             var defaultSpawn = player.getLevel().getSharedSpawnPos();
             if (!player.hasPermissions(2) && player.distanceToSqr(defaultSpawn.getX(), defaultSpawn.getY(), defaultSpawn.getZ()) > 10 * 10) {
                 player.teleportTo(defaultSpawn.getX(), defaultSpawn.getY(), defaultSpawn.getZ());
+            }
+
+            // if not op, force to survival
+            if (!player.hasPermissions(2)) {
+                player.setGameMode(GameType.SURVIVAL);
             }
         }
     }

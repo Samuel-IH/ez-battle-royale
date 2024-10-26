@@ -159,7 +159,8 @@ public class StormPlayerController {
                 // show action bar message
                 if (hasLivingTeammates(player)) {
                     var remainingTicks = Config.teamRespawnTicks - ticks;
-                    Component message = Component.literal("You have died, but have living teammates. You will respawn in " + remainingTicks + " ticks.");
+                    var seconds = remainingTicks / 20;
+                    Component message = Component.literal("You have died, but have living teammates. You will respawn in " + seconds + " seconds.");
                     player.displayClientMessage(message, true);
                 } else {
                     Component message = Component.literal("You have died, you will not respawn.");

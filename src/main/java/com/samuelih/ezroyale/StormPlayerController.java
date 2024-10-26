@@ -169,22 +169,27 @@ public class StormPlayerController {
                     data.isDead = true;
                 }
             } else {
-                // respawn player
-                player.setGameMode(GameType.SURVIVAL);
-                launchPlayer(player);
-                data.waitingForRespawn = false;
+                var teammates = getLivingTeammates(player);
+                var damageToShare = 10.0f;
+                var damagePerTeammate = damageToShare / teammates.size();
 
-                DamageSource damageSource = player.getLevel().damageSources().outOfWorld();
+                // can only respawn if all living teammates have 2 + damagePerTeammate health
+                boolean canRespawn = teammates.stream().allMatch(p -> p.getHealth() >= 2 + damagePerTeammate);
+                if (!canRespawn) {
+                    // show action bar message
+                    Component message = Component.literal("You have died, but your teammates are too weak to respawn you.");
+                    player.displayClientMessage(message, true);
+                } else {
+                    // respawn player
+                    player.setGameMode(GameType.SURVIVAL);
+                    launchPlayer(player);
+                    data.waitingForRespawn = false;
 
-                // get all players on the same team, and damage them 10 dmg
-                Scoreboard scoreboard = player.getScoreboard();
-                PlayerTeam team = scoreboard.getPlayersTeam(player.getScoreboardName());
-                if (team != null) {
-                    List<ServerPlayer> players = player.getLevel().players().stream().filter(p -> p != player).toList();
-                    for (ServerPlayer p : players) {
-                        if (scoreboard.getPlayersTeam(p.getScoreboardName()) == team) {
-                            p.hurt(damageSource, 10);
-                        }
+                    DamageSource damageSource = player.getLevel().damageSources().outOfWorld();
+
+                    // apply damage to teammates
+                    for (ServerPlayer p : teammates) {
+                        p.hurt(damageSource, damagePerTeammate);
                     }
                 }
             }
@@ -268,5 +273,17 @@ public class StormPlayerController {
         }
 
         return false;
+    }
+
+    private static List<ServerPlayer> getLivingTeammates(ServerPlayer player) {
+        Scoreboard scoreboard = player.getScoreboard();
+        PlayerTeam team = scoreboard.getPlayersTeam(player.getScoreboardName());
+        if (team == null) {
+            return List.of();
+        }
+
+        // loop through all players ecext the caller, if they are on the same team and alive then return true
+        List<ServerPlayer> players = player.getLevel().players().stream().filter(p -> p != player).toList();
+        return players.stream().filter(p -> scoreboard.getPlayersTeam(p.getScoreboardName()) == team && !p.isDeadOrDying() && !p.isSpectator()).toList();
     }
 }

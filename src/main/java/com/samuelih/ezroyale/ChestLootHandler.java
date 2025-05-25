@@ -29,8 +29,7 @@ import java.util.UUID;
 public class ChestLootHandler {
 
     private static final String GENERATED_FOR_ROUND_KEY = "ezroyale:round_id";
-    private static final ResourceLocation LOOT_TABLE_A = new ResourceLocation("tw", "chests/everything");
-    private static final ResourceLocation LOOT_TABLE_B = new ResourceLocation("tw", "chests/other_stuff");
+    private static final ResourceLocation LOOT_TABLE = new ResourceLocation("tw", "chests/everything");
 
     public static class GameState {
         public static UUID currentRoundId = UUID.randomUUID();
@@ -96,7 +95,7 @@ public class ChestLootHandler {
     }
 
     private static void applyLootTable(ServerLevel level, RandomizableContainerBlockEntity chest) {
-        var lootTable = Math.random() < 0.5 ? LOOT_TABLE_A : LOOT_TABLE_B;
+        var lootTable = Math.random() < 0.5 ? LOOT_TABLE : ;
 
         LootTable table = level.getServer().getLootTables().get(lootTable);
         LootContext ctx = new LootContext.Builder(level)

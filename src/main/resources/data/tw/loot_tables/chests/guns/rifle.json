@@ -1,0 +1,38 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:alternatives",
+          "children": [
+            { "type": "minecraft:item", "name": "cgm:rifle" },
+            { "type": "minecraft:item", "name": "cgm:heavy_rifle" }
+          ]
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "cgm:advanced_bullet",
+          "functions": [
+            { "function": "set_count", "count": { "min": 2, "max": 40 } }
+          ]
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:loot_table",
+          "name": "tw:chests/guns/attachments"
+        }
+      ]
+    }
+  ]
+}

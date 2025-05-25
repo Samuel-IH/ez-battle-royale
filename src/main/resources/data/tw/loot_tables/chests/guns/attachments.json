@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        { "type": "minecraft:item", "name": "cgm:short_scope", "conditions": [{ "condition": "minecraft:random_chance", "chance": 0.1 }] },
+        { "type": "minecraft:item", "name": "cgm:medium_scope", "conditions": [{ "condition": "minecraft:random_chance", "chance": 0.1 }] },
+        { "type": "minecraft:item", "name": "cgm:long_scope", "conditions": [{ "condition": "minecraft:random_chance", "chance": 0.1 }] },
+
+        { "type": "minecraft:item", "name": "cgm:light_stock", "conditions": [{ "condition": "minecraft:random_chance", "chance": 0.1 }] },
+        { "type": "minecraft:item", "name": "cgm:weighted_stock", "conditions": [{ "condition": "minecraft:random_chance", "chance": 0.1 }] },
+        { "type": "minecraft:item", "name": "cgm:tactical_stock", "conditions": [{ "condition": "minecraft:random_chance", "chance": 0.1 }] },
+
+        { "type": "minecraft:item", "name": "cgm:silencer", "conditions": [{ "condition": "minecraft:random_chance", "chance": 0.1 }] },
+
+        { "type": "minecraft:item", "name": "cgm:light_grip", "conditions": [{ "condition": "minecraft:random_chance", "chance": 0.1 }] },
+        { "type": "minecraft:item", "name": "cgm:specialised_grip", "conditions": [{ "condition": "minecraft:random_chance", "chance": 0.1 }] }
+      ]
+    }
+  ]
+}

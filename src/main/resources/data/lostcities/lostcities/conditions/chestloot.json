@@ -23,10 +23,6 @@
     {
       "factor": 1,
       "value": "tw:chests/everything"
-    },
-    {
-      "factor": 1,
-      "value": "tw:chests/other_stuff"
     }
   ]
 }

@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:alternatives",
+          "children": [
+            { "type": "minecraft:item", "name": "immersive_melodies:bagpipe" },
+            { "type": "minecraft:item", "name": "immersive_melodies:didgeridoo" },
+            { "type": "minecraft:item", "name": "immersive_melodies:flute" },
+            { "type": "minecraft:item", "name": "immersive_melodies:lute" },
+            { "type": "minecraft:item", "name": "immersive_melodies:triangle" },
+            { "type": "minecraft:item", "name": "immersive_melodies:trumpet" },
+            { "type": "minecraft:item", "name": "immersive_melodies:piano" }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -95,9 +95,7 @@ public class ChestLootHandler {
     }
 
     private static void applyLootTable(ServerLevel level, RandomizableContainerBlockEntity chest) {
-        var lootTable = Math.random() < 0.5 ? LOOT_TABLE : ;
-
-        LootTable table = level.getServer().getLootTables().get(lootTable);
+        LootTable table = level.getServer().getLootTables().get(LOOT_TABLE);
         LootContext ctx = new LootContext.Builder(level)
                 .withParameter(LootContextParams.ORIGIN, chest.getBlockPos().getCenter())
                 .create(LootContextParamSet.builder().build());

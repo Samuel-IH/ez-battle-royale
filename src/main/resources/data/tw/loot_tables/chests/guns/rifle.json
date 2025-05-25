@@ -5,11 +5,12 @@
       "rolls": 1,
       "entries": [
         {
-          "type": "minecraft:alternatives",
-          "children": [
-            { "type": "minecraft:item", "name": "cgm:rifle" },
-            { "type": "minecraft:item", "name": "cgm:heavy_rifle" }
-          ]
+          "type": "minecraft:item",
+          "name": "cgm:rifle"
+        },
+        {
+          "type": "minecraft:item",
+          "name": "cgm:heavy_rifle"
         }
       ]
     },

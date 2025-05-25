@@ -1,0 +1,63 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": {
+        "min": 1,
+        "max": 3
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "immersive_aircraft:improved_landing_gear",
+          "conditions": [{ "condition": "minecraft:random_chance", "chance": 0.075 }]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "immersive_aircraft:hull_reinforcement",
+          "conditions": [{ "condition": "minecraft:random_chance", "chance": 0.075 }]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "immersive_aircraft:gyroscope",
+          "conditions": [{ "condition": "minecraft:random_chance", "chance": 0.075 }]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "immersive_aircraft:sturdy_pipes",
+          "conditions": [{ "condition": "minecraft:random_chance", "chance": 0.075 }]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "immersive_aircraft:industrial_gears",
+          "conditions": [{ "condition": "minecraft:random_chance", "chance": 0.075 }]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "immersive_aircraft:steel_boiler",
+          "conditions": [{ "condition": "minecraft:random_chance", "chance": 0.075 }]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "immersive_aircraft:nether_engine",
+          "conditions": [{ "condition": "minecraft:random_chance", "chance": 0.075 }]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "immersive_aircraft:eco_engine",
+          "conditions": [{ "condition": "minecraft:random_chance", "chance": 0.075 }]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "immersive_aircraft:enhanced_propeller",
+          "conditions": [{ "condition": "minecraft:random_chance", "chance": 0.075 }]
+        },
+        {
+          "type": "minecraft:loot_table",
+          "name": "tw:chests/aircraft/weapons",
+          "conditions": [{ "condition": "minecraft:random_chance", "chance": 0.075 }]
+        }
+      ]
+    }
+  ]
+}

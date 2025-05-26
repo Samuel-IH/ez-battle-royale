@@ -56,7 +56,7 @@ public class ClientKeyHandler {
             }
 
             if (entityHit != null) {
-                PingManager.addPing(entityHit.getLocation());
+                PingManager.addPing(entityHit.getEntity().position());
             } else if (blockHit != null && blockHit.getType() != HitResult.Type.MISS) {
                 PingManager.addPing(blockHitVec);
             }

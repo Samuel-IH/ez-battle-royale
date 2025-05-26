@@ -7,6 +7,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
@@ -18,6 +19,9 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
 import org.slf4j.Logger;
 
 import java.util.Random;
@@ -36,6 +40,16 @@ public class EzRoyale
     private final TeamBuilder teamBuilder = new TeamBuilder();
     private final ShrinkingStorm storm = new ShrinkingStorm();
     private final StormPlayerController playerController = new StormPlayerController(storm, gameState);
+
+    public static final DeferredRegister<Item> MONEY_ITEMS =
+            DeferredRegister.create(ForgeRegistries.ITEMS, "money");
+
+    public static final RegistryObject<Item> MONEY =
+            MONEY_ITEMS.register("money", () -> new Item(new Item.Properties()));
+
+    public static void register(IEventBus bus) {
+        MONEY_ITEMS.register(bus);
+    }
 
     private void ResetGame(ServerLevel level) {
         gameState.setPhase(level, GamePhase.SETUP);
@@ -72,6 +86,9 @@ public class EzRoyale
 
         // Register our mod's ForgeConfigSpec so that Forge can create and load the config file for us
         context.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+
+        // Register our mod's item(s)
+        register(modEventBus);
 
         gameState.addPhaseChangeListener(this::onChangePhase);
     }

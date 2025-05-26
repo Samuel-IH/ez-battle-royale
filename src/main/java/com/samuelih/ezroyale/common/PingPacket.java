@@ -36,9 +36,7 @@ public class PingPacket {
     public static void handle(PingPacket msg, Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
             ServerPlayer sender = ctx.get().getSender();
-            if (sender == null || sender.level() == null) return;
-
-            // Optionally validate sender (cooldown, distance, permissions, etc.)
+            if (sender == null) return;
 
             // Relay to other players (see below)
             relayPingToRelevantPlayers(sender, msg.type, msg.location);
@@ -49,15 +47,20 @@ public class PingPacket {
     private static void relayPingToRelevantPlayers(ServerPlayer sender, PingType type, Vec3 location) {
         ServerLevel level = sender.serverLevel();
 
-        // Naive version: send to all players in the same dimension
-        for (ServerPlayer target : level.players()) {
-            //if (target == sender) continue;
+        // First and foremost, always relay to the player who sent the ping. They need to see their own pings.
+        NetworkHandler.CHANNEL.sendTo(
+                new PingBroadcastPacket(type, location, sender.getUUID()),
+                sender.connection.connection,
+                NetworkDirection.PLAY_TO_CLIENT);
 
-            // Optionally add distance checks, visibility checks, team checks, etc.
-            NetworkHandler.CHANNEL.sendTo(
-                    new PingBroadcastPacket(type, location, sender.getUUID()),
-                    target.connection.connection,
-                    NetworkDirection.PLAY_TO_CLIENT);
-        }
+        // Now, send to other players that are on the same team, and in the same dimension
+        level.players().stream()
+                .filter(player -> player != sender && player.getTeam() == sender.getTeam() && player.level() == level)
+                .forEach(player -> {
+                    NetworkHandler.CHANNEL.sendTo(
+                            new PingBroadcastPacket(type, location, sender.getUUID()),
+                            player.connection.connection,
+                            NetworkDirection.PLAY_TO_CLIENT);
+                });
     }
 }

@@ -10,7 +10,11 @@
         { "type": "item", "name": "immersive_melodies:lute" },
         { "type": "item", "name": "immersive_melodies:triangle" },
         { "type": "item", "name": "immersive_melodies:trumpet" },
-        { "type": "item", "name": "immersive_melodies:piano" }
+        { "type": "item", "name": "immersive_melodies:piano" },
+        { "type": "item", "name": "immersive_melodies:tiny_drum" },
+        { "type": "item", "name": "immersive_melodies:vielle" },
+        { "type": "item", "name": "immersive_melodies:ender_bass" },
+        { "type": "item", "name": "immersive_melodies:handpan" }
       ]
     }
   ]

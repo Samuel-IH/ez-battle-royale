@@ -93,7 +93,7 @@ public class TeamBuilder {
         scoreboard.addPlayerToTeam(player.getScoreboardName(), team);
 
         Component message = Component.literal("You are now on the the " + teamName + " team!");
-        source.sendSuccess(message, true);
+        source.sendSuccess(() -> message, true);
 
         return 1;
     }

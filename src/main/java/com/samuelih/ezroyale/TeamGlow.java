@@ -51,7 +51,7 @@ public class TeamGlow {
             return;
         }
 
-        List<ServerPlayer> players = player.getLevel().players().stream().filter(p -> p != player).toList();
+        List<ServerPlayer> players = player.serverLevel().players().stream().filter(p -> p != player).toList();
         for (ServerPlayer p : players) {
             sendGlowingPacket(player, p, scoreboard.getPlayersTeam(p.getScoreboardName()) == team);
         }

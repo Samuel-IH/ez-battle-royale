@@ -91,7 +91,7 @@ public class StormPlayerController {
             }
 
             // if not op, and more than 10 blocks away from world spawn, tp to world spawn
-            var defaultSpawn = player.getLevel().getSharedSpawnPos();
+            var defaultSpawn = player.level().getSharedSpawnPos();
             if (!player.hasPermissions(2) && player.distanceToSqr(defaultSpawn.getX(), defaultSpawn.getY(), defaultSpawn.getZ()) > 10 * 10) {
                 player.teleportTo(defaultSpawn.getX(), defaultSpawn.getY(), defaultSpawn.getZ());
             }
@@ -153,7 +153,7 @@ public class StormPlayerController {
             if (ticks < Config.teamRespawnTicks) {
                 // set to spectator
                 player.setGameMode(GameType.SPECTATOR);
-                var respawnPos = storm.getSpawnCenter(player.getLevel());
+                var respawnPos = storm.getSpawnCenter(level);
                 player.teleportTo(respawnPos.x, respawnPos.y, respawnPos.z);
 
                 // show action bar message
@@ -185,7 +185,7 @@ public class StormPlayerController {
                     launchPlayer(player);
                     data.waitingForRespawn = false;
 
-                    DamageSource damageSource = player.getLevel().damageSources().outOfWorld();
+                    DamageSource damageSource = level.damageSources().fellOutOfWorld();
 
                     // apply damage to teammates
                     for (ServerPlayer p : teammates) {
@@ -198,7 +198,7 @@ public class StormPlayerController {
         }
 
         // Check if the player needs landing check and has landed on the ground
-        if (data.needsLandingCheck && player.isOnGround()) {
+        if (data.needsLandingCheck && player.onGround()) {
             // remove elytra
             ItemStack chestplate = player.getInventory().armor.get(2);
             if (chestplate.getItem() == Items.ELYTRA) {
@@ -218,7 +218,7 @@ public class StormPlayerController {
     }
 
     private void launchPlayer(ServerPlayer player) {
-        var respawnPos = storm.getSpawnCenter(player.getLevel());
+        var respawnPos = storm.getSpawnCenter(player.serverLevel());
         player.teleportTo(respawnPos.x, respawnPos.y, respawnPos.z);
 
         // equip Elytra
@@ -265,7 +265,7 @@ public class StormPlayerController {
         }
 
         // loop through all players ecext the caller, if they are on the same team and alive then return true
-        List<ServerPlayer> players = player.getLevel().players().stream().filter(p -> p != player).toList();
+        List<ServerPlayer> players = player.serverLevel().players().stream().filter(p -> p != player).toList();
         for (ServerPlayer p : players) {
             if (scoreboard.getPlayersTeam(p.getScoreboardName()) == team && !p.isDeadOrDying() && !p.isSpectator()) {
                 return true;
@@ -283,7 +283,7 @@ public class StormPlayerController {
         }
 
         // loop through all players ecext the caller, if they are on the same team and alive then return true
-        List<ServerPlayer> players = player.getLevel().players().stream().filter(p -> p != player).toList();
+        List<ServerPlayer> players = player.serverLevel().players().stream().filter(p -> p != player).toList();
         return players.stream().filter(p -> scoreboard.getPlayersTeam(p.getScoreboardName()) == team && !p.isDeadOrDying() && !p.isSpectator()).toList();
     }
 }

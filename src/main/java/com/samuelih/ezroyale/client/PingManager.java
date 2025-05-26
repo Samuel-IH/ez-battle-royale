@@ -31,13 +31,10 @@ public class PingManager {
     public static void addPing(PingType type, Vec3 location) {
         var now = System.currentTimeMillis();
 
-        // search to see if there's any existing pings within 1 meter, within the last half second
         if (type == PingType.GENERIC) {
             for (Ping ping : active) {
                 if (ping.type == type && ping.location.distanceToSqr(location) < 1.0 && (now - ping.createdAt) < 500) {
-                    // Remove the old ping
                     active.remove(ping);
-                    // Change the new one to WARNING
                     type = PingType.WARNING;
                     break;
                 }
@@ -81,49 +78,44 @@ public class PingManager {
         var camRot = Minecraft.getInstance().gameRenderer.getMainCamera().rotation();
         Vec3 camPos = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
 
-        // Compute direction from object to camera (relative horizontal vector)
-        Vec3 lookVec = camPos.subtract(location); // worldPos = position of object you're rendering at
-        float yaw = (float) Math.atan2(lookVec.x, lookVec.z); // rotation around Y
+        Vec3 lookVec = camPos.subtract(location);
+        float yaw = (float) Math.atan2(lookVec.x, lookVec.z);
 
         poseStack.pushPose();
         poseStack.translate(location.x - camPos.x, location.y - camPos.y, location.z - camPos.z);
 
-        // scale based on FoV and distance to camera to keep size consistent
         float distance = (float) camPos.distanceTo(location);
-        float fov = Minecraft.getInstance().options.fov().get(); // degrees
-        float baseScale = 0.25f; // arbitrary "normal" size at distance = 1
-        // Convert vertical FOV in degrees to radians
+        float fov = Minecraft.getInstance().options.fov().get();
+        float baseScale = 0.25f;
         float fovRadians = (float) Math.toRadians(fov);
-        // Perspective projection scale factor (tan(fov / 2))
         float perspectiveFactor = (float) Math.tan(fovRadians / 2.0);
-        // Final scale
         float scale = baseScale * distance * perspectiveFactor;
 
-        // Draw the base, it's rotated so it lies flat on the ground
+        float r = ping.type.getR();
+        float g = ping.type.getG();
+        float b = ping.type.getB();
+
         poseStack.pushPose();
-        renderTorus(PING_LINE_TEX, poseStack, 0.005f * scale, 0.5f, 32, 32, 1f); // Draw the torus around the base
+        renderTorus(PING_LINE_TEX, poseStack, 0.005f * scale, 0.5f, 32, 32, 1f, r, g, b);
         poseStack.popPose();
 
-        // Draw the vertical line. This one stands up straight, does face the camera, but this one is X/Z locked (only y billboard)
         poseStack.pushPose();
         poseStack.scale(scale, scale, scale);
-        poseStack.mulPose(new Quaternionf().rotationY(yaw + (float)Math.PI)); // Y-only billboard
+        poseStack.mulPose(new Quaternionf().rotationY(yaw + (float)Math.PI));
         var lineThickness = 0.01f;
-        renderIcon(PING_LINE_TEX, poseStack, lineThickness / -2f, 0, lineThickness, 1, 0, 1, 1, 0, 1);
+        renderIcon(PING_LINE_TEX, poseStack, lineThickness / -2f, 0.25f, lineThickness, 0.5f, 0, 1, 1, 0, 1, r, g, b);
         poseStack.popPose();
 
-        // Draw the ping icon, this one copies the camera's rotation so it always faces the camera, even vertically!
         poseStack.pushPose();
         poseStack.scale(scale, scale, scale);
         poseStack.mulPose(camRot);
-        //poseStack.translate(0, 0.5f, 0); // Offset slightly above the base
-        renderIcon(ping.type.getTexture(), poseStack, -0.5f, 1, 1, 1, 0, 1, 1, 0, 1);
+        renderIcon(ping.type.getTexture(), poseStack, -0.25f, 1f, 0.5f, 0.5f, 0, 1, 1, 0, 1, r, g, b);
         poseStack.popPose();
 
         poseStack.popPose();
     }
 
-    private static void renderIcon(ResourceLocation icon, PoseStack poseStack, float x, float y, float w, float h, float u0, float u1, float v0, float v1, float alpha)
+    private static void renderIcon(ResourceLocation icon, PoseStack poseStack, float x, float y, float w, float h, float u0, float u1, float v0, float v1, float alpha, float r, float g, float b)
     {
         Matrix4f matrix = poseStack.last().pose();
 
@@ -133,14 +125,14 @@ public class PingManager {
         RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
         BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
         bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
-        bufferbuilder.vertex(matrix, x,			(y + h),	0).uv(u0, v1).color(1.0f, 1.0f, 1.0f, alpha).endVertex();
-        bufferbuilder.vertex(matrix, (x + w),	(y + h),	0).uv(u1, v1).color(1.0f, 1.0f, 1.0f, alpha).endVertex();
-        bufferbuilder.vertex(matrix, (x + w),	y,		0).uv(u1, v0).color(1.0f, 1.0f, 1.0f, alpha).endVertex();
-        bufferbuilder.vertex(matrix, x,			y,		0).uv(u0, v0).color(1.0f, 1.0f, 1.0f, alpha).endVertex();
+        bufferbuilder.vertex(matrix, x,         (y + h),    0).uv(u0, v1).color(r, g, b, alpha).endVertex();
+        bufferbuilder.vertex(matrix, (x + w),   (y + h),    0).uv(u1, v1).color(r, g, b, alpha).endVertex();
+        bufferbuilder.vertex(matrix, (x + w),   y,          0).uv(u1, v0).color(r, g, b, alpha).endVertex();
+        bufferbuilder.vertex(matrix, x,         y,          0).uv(u0, v0).color(r, g, b, alpha).endVertex();
         BufferUploader.drawWithShader(bufferbuilder.end());
     }
 
-    private static void renderTorus(ResourceLocation texture, PoseStack poseStack, float minorRadius, float majorRadius, int rings, int loops, float alpha)
+    private static void renderTorus(ResourceLocation texture, PoseStack poseStack, float minorRadius, float majorRadius, int rings, int loops, float alpha, float r, float g, float b)
     {
         Minecraft mc = Minecraft.getInstance();
         mc.getTextureManager().getTexture(texture).setFilter(false, false);
@@ -151,8 +143,7 @@ public class PingManager {
         BufferBuilder buffer = Tesselator.getInstance().getBuilder();
         buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
 
-        for (int i = 0; i < rings; i++)
-        {
+        for (int i = 0; i < rings; i++) {
             float theta1 = (float) (2 * Math.PI * i / rings);
             float theta2 = (float) (2 * Math.PI * (i + 1) / rings);
 
@@ -161,8 +152,7 @@ public class PingManager {
             float cos2 = (float) Math.cos(theta2);
             float sin2 = (float) Math.sin(theta2);
 
-            for (int j = 0; j < loops; j++)
-            {
+            for (int j = 0; j < loops; j++) {
                 float phi1 = (float) (2 * Math.PI * j / loops);
                 float phi2 = (float) (2 * Math.PI * (j + 1) / loops);
 
@@ -171,7 +161,6 @@ public class PingManager {
                 float cosPhi2 = (float) Math.cos(phi2);
                 float sinPhi2 = (float) Math.sin(phi2);
 
-                // Four corners of the quad
                 float x1 = (majorRadius + minorRadius * cosPhi1) * cos1;
                 float y1 = minorRadius * sinPhi1;
                 float z1 = (majorRadius + minorRadius * cosPhi1) * sin1;
@@ -188,16 +177,15 @@ public class PingManager {
                 float y4 = minorRadius * sinPhi2;
                 float z4 = (majorRadius + minorRadius * cosPhi2) * sin1;
 
-                // Texture UVs are rough (tiled uniformly)
                 float u1 = (float)i / rings;
                 float u2 = (float)(i + 1) / rings;
                 float v1 = (float)j / loops;
                 float v2 = (float)(j + 1) / loops;
 
-                buffer.vertex(matrix, x1, y1, z1).uv(u1, v1).color(1f, 1f, 1f, alpha).endVertex();
-                buffer.vertex(matrix, x2, y2, z2).uv(u2, v1).color(1f, 1f, 1f, alpha).endVertex();
-                buffer.vertex(matrix, x3, y3, z3).uv(u2, v2).color(1f, 1f, 1f, alpha).endVertex();
-                buffer.vertex(matrix, x4, y4, z4).uv(u1, v2).color(1f, 1f, 1f, alpha).endVertex();
+                buffer.vertex(matrix, x1, y1, z1).uv(u1, v1).color(r, g, b, alpha).endVertex();
+                buffer.vertex(matrix, x2, y2, z2).uv(u2, v1).color(r, g, b, alpha).endVertex();
+                buffer.vertex(matrix, x3, y3, z3).uv(u2, v2).color(r, g, b, alpha).endVertex();
+                buffer.vertex(matrix, x4, y4, z4).uv(u1, v2).color(r, g, b, alpha).endVertex();
             }
         }
 

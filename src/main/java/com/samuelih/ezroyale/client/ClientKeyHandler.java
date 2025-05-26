@@ -74,7 +74,7 @@ public class ClientKeyHandler {
         var state = level.getBlockState(blockPos);
 
         if (state.is(Blocks.BARREL)) {
-            sendPing(PingType.GENERIC, blockHit.getLocation());
+            sendPing(PingType.LOOT, blockHit.getLocation());
         } else if (state.is(Blocks.CHEST) || state.is(Blocks.TRAPPED_CHEST)) {
             sendPing(PingType.LOOT, blockHit.getLocation());
         } else {

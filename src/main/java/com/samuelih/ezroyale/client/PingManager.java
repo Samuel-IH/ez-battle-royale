@@ -32,23 +32,41 @@ public class PingManager {
     public static void addPing(PingType type, Vec3 location) {
         var now = System.currentTimeMillis();
 
-        if (type == PingType.GENERIC) {
-            for (Ping ping : active) {
-                if (ping.location.distanceToSqr(location) < 1.0 && (now - ping.createdAt) < 500) {
-                    // Old warning pings also get collapsed into this new ping
-                    if (!(ping.type == PingType.WARNING || ping.type == PingType.GENERIC)) continue;
+        var playSound = true;
 
-                    active.remove(ping);
-                    type = PingType.WARNING;
-                    break;
+        // collapse multiple pings
+        for (Ping ping : active) {
+            if (ping.location.distanceToSqr(location) < 2.25) {
+
+                if (!(
+                        ping.type == type ||
+                        (type == PingType.GENERIC && ping.type == PingType.WARNING) // generic pings can collapse into warnings
+                )) {
+                    continue;
                 }
+
+                // Collapse the old ping
+                active.remove(ping);
+                playSound = false; // don't play sound for collapsed pings
+
+                // if the new ping is generic, we collapse them into warnings (panic mode)
+                if (type == PingType.GENERIC) {
+                    type = PingType.WARNING;
+
+                    if (ping.type == PingType.GENERIC) {
+                        // If the old ping was generic, we've collapsed two generic pings into one warning
+                        // so we need to play the warning sound
+                        playSound = true;
+                    }
+                }
+                break;
             }
         }
 
         active.add(new Ping(type, location, System.currentTimeMillis()));
 
         Minecraft mc = Minecraft.getInstance();
-        if (mc.player != null) {
+        if (mc.player != null && playSound) {
             mc.getSoundManager().play(SimpleSoundInstance.forUI(type.getSound(), 1.0f));
         }
     }

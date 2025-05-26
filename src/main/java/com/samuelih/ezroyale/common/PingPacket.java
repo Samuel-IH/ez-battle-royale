@@ -53,6 +53,9 @@ public class PingPacket {
                 sender.connection.connection,
                 NetworkDirection.PLAY_TO_CLIENT);
 
+        // No team == no broadcasting
+        if (sender.getTeam() == null) return;
+
         // Now, send to other players that are on the same team, and in the same dimension
         level.players().stream()
                 .filter(player -> player != sender && player.getTeam() == sender.getTeam() && player.level() == level)

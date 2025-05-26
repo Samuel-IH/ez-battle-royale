@@ -13,20 +13,6 @@
         },
         {
           "type": "minecraft:item",
-          "name": "minecraft:leather",
-          "functions": [
-            { "function": "set_count", "count": { "min": 0, "max": 5 } }
-          ]
-        },
-        {
-          "type": "minecraft:item",
-          "name": "minecraft:copper_ingot",
-          "functions": [
-            { "function": "set_count", "count": { "min": 0, "max": 6 } }
-          ]
-        },
-        {
-          "type": "minecraft:item",
           "name": "minecraft:gold_ingot",
           "functions": [
             { "function": "set_count", "count": { "min": 0, "max": 4 } }

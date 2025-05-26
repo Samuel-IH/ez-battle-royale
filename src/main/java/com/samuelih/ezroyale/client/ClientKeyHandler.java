@@ -41,7 +41,7 @@ public class ClientKeyHandler {
             // Do block raytrace
             if (level == null) return;
             BlockHitResult blockHit = level.clip(new ClipContext(from, to, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, mc.player));
-            Vec3 blockHitVec = blockHit.getLocation();
+            var distToBlock = from.distanceToSqr(blockHit.getLocation());
 
             // Check entity hit manually
             AABB bounds = mc.player.getBoundingBox().expandTowards(mc.player.getLookAngle().scale(PING_RANGE)).inflate(1.0);
@@ -61,7 +61,7 @@ public class ClientKeyHandler {
                 }
             }
 
-            if (entityHit != null) {
+            if (entityHit != null && (distToBlock > closestDistance || blockHit.getType() == HitResult.Type.MISS)) {
                 addEntityPing(entityHit);
             } else if (blockHit.getType() != HitResult.Type.MISS) {
                 addBlockPing(level, blockHit);

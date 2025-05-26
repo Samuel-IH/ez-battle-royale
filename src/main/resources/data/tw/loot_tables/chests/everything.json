@@ -2,25 +2,25 @@
   "type": "minecraft:chest",
   "pools": [
     {
-      "rolls": 1,
+      "rolls": 2,
       "entries": [
         { "type": "minecraft:loot_table", "name": "tw:chests/aircraft/aircraft" },
+        { "type": "minecraft:loot_table", "name": "tw:chests/instruments" },
+        { "type": "minecraft:loot_table", "name": "tw:chests/guns/starter_guns" },
+        { "type": "minecraft:loot_table", "name": "tw:chests/guns/attachments" },
         { "type": "minecraft:loot_table", "name": "tw:chests/guns/ammo" },
-        { "type": "minecraft:loot_table", "name": "tw:chests/guns/minigun" },
-        { "type": "minecraft:loot_table", "name": "tw:chests/guns/bazooka" },
-        { "type": "minecraft:loot_table", "name": "tw:chests/guns/miniminigun" },
-        { "type": "minecraft:loot_table", "name": "tw:chests/guns/grenade_launcher" },
-        { "type": "minecraft:loot_table", "name": "tw:chests/guns/resources" },
-        { "type": "minecraft:loot_table", "name": "tw:chests/guns/rifle" },
-        { "type": "minecraft:loot_table", "name": "tw:chests/guns/shotgun" },
-        { "type": "minecraft:loot_table", "name": "tw:chests/guns/pistol" },
+        { "type": "minecraft:loot_table", "name": "tw:chests/guns/ammo" },
+        { "type": "minecraft:loot_table", "name": "tw:chests/guns/ammo" },
+        { "type": "minecraft:loot_table", "name": "tw:chests/materials" },
+        { "type": "minecraft:loot_table", "name": "tw:chests/materials" },
         { "type": "minecraft:loot_table", "name": "tw:chests/materials" },
         { "type": "minecraft:loot_table", "name": "tw:chests/foods" },
-        { "type": "minecraft:loot_table", "name": "tw:chests/instruments" }
+        { "type": "minecraft:loot_table", "name": "tw:chests/foods" },
+        { "type": "minecraft:loot_table", "name": "tw:chests/foods" }
       ]
     },
     {
-      "rolls": 1,
+      "rolls": 2,
       "entries": [
         {
           "type": "minecraft:item",

@@ -1,0 +1,70 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "tacz:modern_kinetic_gun",
+          "functions": [
+            {
+              "function": "set_nbt",
+              "tag": "{GunCurrentAmmoCount:17,GunFireMode:\"SEMI\",GunId:\"tacz:glock_17\",HasBulletInBarrel:1b}"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "tacz:modern_kinetic_gun",
+          "functions": [
+            {
+              "function": "set_nbt",
+              "tag": "{GunCurrentAmmoCount:12,GunFireMode:\"SEMI\",GunId:\"tacz:p320\",HasBulletInBarrel:1b}"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "tacz:modern_kinetic_gun",
+          "functions": [
+            {
+              "function": "set_nbt",
+              "tag": "{GunCurrentAmmoCount:7,GunFireMode:\"SEMI\",GunId:\"tacz:m1911\",HasBulletInBarrel:1b}"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "tacz:modern_kinetic_gun",
+          "functions": [
+            {
+              "function": "set_nbt",
+              "tag": "{GunCurrentAmmoCount:20,GunFireMode:\"AUTO\",GunId:\"tacz:uzi\",HasBulletInBarrel:1b}"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "tacz:modern_kinetic_gun",
+          "functions": [
+            {
+              "function": "set_nbt",
+              "tag": "{GunCurrentAmmoCount:2,GunFireMode:\"BURST\",GunId:\"tacz:db_short\",HasBulletInBarrel:1b}"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "tacz:modern_kinetic_gun",
+          "functions": [
+            {
+              "function": "set_nbt",
+              "tag": "{GunCurrentAmmoCount:2,GunFireMode:\"SEMI\",GunId:\"tacz:db_long\",HasBulletInBarrel:1b}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

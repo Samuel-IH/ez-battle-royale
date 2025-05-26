@@ -31,5 +31,12 @@ public class NetworkHandler {
                 PingBroadcastPacket::decode,
                 PingBroadcastPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+
+        CHANNEL.registerMessage(id++,
+                ClipboardPacket.class,
+                ClipboardPacket::encode,
+                ClipboardPacket::decode,
+                ClipboardPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
     }
 }

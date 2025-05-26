@@ -1,14 +1,24 @@
 package com.samuelih.ezroyale;
 
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.logging.LogUtils;
+import com.samuelih.ezroyale.common.ClipboardPacket;
 import com.samuelih.ezroyale.common.NetworkHandler;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Container;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
@@ -20,6 +30,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
@@ -142,6 +153,60 @@ public class EzRoyale
                                     return 1;
                                 }))
         );
+
+        dispatcher.register(
+                Commands.literal("dump_loot")
+                        .requires(source -> source.hasPermission(2))
+                        .executes(context -> {
+                            ServerPlayer player = context.getSource().getPlayerOrException();
+                            ServerLevel level = player.serverLevel();
+                            BlockPos blockBelow = player.blockPosition();
+                            BlockEntity blockEntity = level.getBlockEntity(blockBelow);
+
+                            if (!(blockEntity instanceof Container container)) {
+                                context.getSource().sendFailure(Component.literal("Block is not a container"));
+                                return 0;
+                            }
+
+                            JsonArray entries = new JsonArray();
+
+                            for (int i = 0; i < container.getContainerSize(); i++) {
+                                ItemStack stack = container.getItem(i);
+                                if (stack.isEmpty()) continue;
+
+                                JsonObject entry = new JsonObject();
+                                entry.addProperty("type", "minecraft:item");
+                                entry.addProperty("name", ForgeRegistries.ITEMS.getKey(stack.getItem()).toString());
+
+                                if (stack.hasTag()) {
+                                    CompoundTag tag = stack.getTag();
+                                    String snbt = tag.toString(); // already SNBT
+                                    JsonObject func = new JsonObject();
+                                    func.addProperty("function", "set_nbt");
+                                    func.addProperty("tag", snbt);
+
+                                    JsonArray functions = new JsonArray();
+                                    functions.add(func);
+
+                                    entry.add("functions", functions);
+                                }
+
+                                entries.add(entry);
+                            }
+
+                            String result = new GsonBuilder().setPrettyPrinting().create().toJson(entries);
+
+                            // Send to clipboard (client-side only — do this via a packet)
+                            NetworkHandler.CHANNEL.sendTo(
+                                    new ClipboardPacket(result),
+                                    player.connection.connection,
+                                    NetworkDirection.PLAY_TO_CLIENT);
+
+                            context.getSource().sendSuccess(() -> Component.literal("Copied " + entries.size() + " entries to clipboard."), false);
+                            return 1;
+                        })
+        );
+
     }
 
     private int startRoyale(CommandSourceStack source, Vec3 atPosition) {

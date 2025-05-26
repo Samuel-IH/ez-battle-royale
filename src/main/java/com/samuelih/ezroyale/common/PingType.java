@@ -1,4 +1,4 @@
-package com.samuelih.ezroyale.client;
+package com.samuelih.ezroyale.common;
 
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;

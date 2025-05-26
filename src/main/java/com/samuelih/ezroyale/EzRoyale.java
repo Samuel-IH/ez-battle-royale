@@ -3,6 +3,7 @@ package com.samuelih.ezroyale;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.logging.LogUtils;
+import com.samuelih.ezroyale.common.NetworkHandler;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -95,8 +96,7 @@ public class EzRoyale
 
     private void commonSetup(final FMLCommonSetupEvent event)
     {
-        // Some common setup code
-        LOGGER.info("HELLO FROM COMMON SETUP");
+        NetworkHandler.register();
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
@@ -105,7 +105,6 @@ public class EzRoyale
     {
         // Do something when the server starts
         LOGGER.info("HELLO from server starting");
-
     }
 
     // Subscribe to the command registration event

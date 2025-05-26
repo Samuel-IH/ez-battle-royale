@@ -1,5 +1,8 @@
 package com.samuelih.ezroyale.client;
 
+import com.samuelih.ezroyale.common.NetworkHandler;
+import com.samuelih.ezroyale.common.PingPacket;
+import com.samuelih.ezroyale.common.PingType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
@@ -71,11 +74,11 @@ public class ClientKeyHandler {
         var state = level.getBlockState(blockPos);
 
         if (state.is(Blocks.BARREL)) {
-            PingManager.addPing(PingType.GENERIC, blockHit.getLocation());
+            sendPing(PingType.GENERIC, blockHit.getLocation());
         } else if (state.is(Blocks.CHEST) || state.is(Blocks.TRAPPED_CHEST)) {
-            PingManager.addPing(PingType.LOOT, blockHit.getLocation());
+            sendPing(PingType.LOOT, blockHit.getLocation());
         } else {
-            PingManager.addPing(PingType.GENERIC, blockHit.getLocation());
+            sendPing(PingType.GENERIC, blockHit.getLocation());
         }
     }
 
@@ -84,7 +87,7 @@ public class ClientKeyHandler {
         Vec3 entityPos = entity.position();
 
         if (!(entity instanceof ItemEntity itemEntity)) {
-            PingManager.addPing(PingType.GENERIC, entityPos);
+            sendPing(PingType.GENERIC, entityPos);
             return;
         }
 
@@ -96,14 +99,18 @@ public class ClientKeyHandler {
             String path = itemId.getPath();
 
             if (namespace.equals("money") && path.equals("money")) {
-                PingManager.addPing(PingType.MONEY, entityPos);
+                sendPing(PingType.MONEY, entityPos);
             } else if (namespace.equals("gun") && path.equals("gun")) {
-                PingManager.addPing(PingType.GUN, entityPos);
+                sendPing(PingType.GUN, entityPos);
             } else if (namespace.equals("ammo") && path.equals("ammo")) {
-                PingManager.addPing(PingType.AMMO, entityPos);
+                sendPing(PingType.AMMO, entityPos);
             } else {
-                PingManager.addPing(PingType.GENERIC, entityPos);
+                sendPing(PingType.GENERIC, entityPos);
             }
         }
+    }
+
+    private static void sendPing(PingType type, Vec3 location) {
+        NetworkHandler.CHANNEL.sendToServer(new PingPacket(type, location));
     }
 }

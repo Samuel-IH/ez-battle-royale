@@ -14,7 +14,6 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -55,9 +54,9 @@ public class EzRoyale
         }
     }
 
-    public EzRoyale()
+    public EzRoyale(FMLJavaModLoadingContext context)
     {
-        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+        IEventBus modEventBus = context.getModEventBus();
 
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
@@ -72,7 +71,7 @@ public class EzRoyale
         MinecraftForge.EVENT_BUS.register(new ChestLootHandler());
 
         // Register our mod's ForgeConfigSpec so that Forge can create and load the config file for us
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+        context.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
 
         gameState.addPhaseChangeListener(this::onChangePhase);
     }
@@ -123,7 +122,7 @@ public class EzRoyale
                                 .executes(context -> {
                                     ResetGame(context.getSource().getLevel());
                                     Component message = Component.literal("Battle stopped!");
-                                    context.getSource().sendSuccess(message, true);
+                                    context.getSource().sendSuccess(() -> message, true);
                                     return 1;
                                 }))
         );
@@ -141,7 +140,7 @@ public class EzRoyale
 
         gameState.loadTicks = 20 * 10;
 
-        source.sendSuccess(Component.literal("Battle started!"), true);
+        source.sendSuccess(() -> Component.literal("Battle started!"), true);
         return Command.SINGLE_SUCCESS;
     }
 

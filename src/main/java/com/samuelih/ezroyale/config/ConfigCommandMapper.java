@@ -28,7 +28,7 @@ public abstract class ConfigCommandMapper {
                                 .then(Commands.literal(name)
                                         .executes(ctx -> {
                                             ctx.getSource().sendSuccess(
-                                                    Component.literal("Current " + name + ": " + getCurrentValue()),
+                                                    () -> Component.literal("Current " + name + ": " + getCurrentValue()),
                                                     false
                                             );
                                             return 1;
@@ -50,7 +50,7 @@ public abstract class ConfigCommandMapper {
 
     protected void didSetConfig(CommandContext<CommandSourceStack> ctx) {
         ctx.getSource().sendSuccess(
-                Component.literal("Set " + name + " to " + getCurrentValue()),
+                () -> Component.literal("Set " + name + " to " + getCurrentValue()),
                 false
         );
 

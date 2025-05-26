@@ -7,7 +7,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
@@ -22,21 +21,34 @@ import java.util.List;
 
 @Mod.EventBusSubscriber(modid = "ezroyale", value = Dist.CLIENT)
 public class PingManager {
-    public static final ResourceLocation PING_TEX = ResourceLocation.fromNamespaceAndPath("money", "textures/item/ping.png");
     public static final ResourceLocation PING_LINE_TEX = ResourceLocation.fromNamespaceAndPath("money", "textures/item/ping_line.png");
-    public static final ResourceLocation PING_BASE_TEX = ResourceLocation.fromNamespaceAndPath("money", "textures/item/ping_base.png");
 
     public static final int PING_DURATION_MS = 5000;
     public static final int FADE_DURATION_MS = 1000;
 
     private static final List<Ping> active = new ArrayList<>();
 
-    public static void addPing(Vec3 location) {
-        active.add(new Ping(location, System.currentTimeMillis()));
+    public static void addPing(PingType type, Vec3 location) {
+        var now = System.currentTimeMillis();
+
+        // search to see if there's any existing pings within 1 meter, within the last half second
+        if (type == PingType.GENERIC) {
+            for (Ping ping : active) {
+                if (ping.type == type && ping.location.distanceToSqr(location) < 1.0 && (now - ping.createdAt) < 500) {
+                    // Remove the old ping
+                    active.remove(ping);
+                    // Change the new one to WARNING
+                    type = PingType.WARNING;
+                    break;
+                }
+            }
+        }
+
+        active.add(new Ping(type, location, System.currentTimeMillis()));
 
         Minecraft mc = Minecraft.getInstance();
         if (mc.player != null) {
-            mc.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_PLING.get(), 1.0f));
+            mc.getSoundManager().play(SimpleSoundInstance.forUI(type.getSound(), 1.0f));
         }
     }
 
@@ -58,12 +70,14 @@ public class PingManager {
                 continue;
             }
 
-            renderPing(ping.location, poseStack);
+            renderPing(ping, poseStack);
         }
     }
 
-    private static void renderPing(Vec3 location, PoseStack poseStack)
+    private static void renderPing(Ping ping, PoseStack poseStack)
     {
+        var location = ping.location;
+
         var camRot = Minecraft.getInstance().gameRenderer.getMainCamera().rotation();
         Vec3 camPos = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
 
@@ -103,7 +117,7 @@ public class PingManager {
         poseStack.scale(scale, scale, scale);
         poseStack.mulPose(camRot);
         //poseStack.translate(0, 0.5f, 0); // Offset slightly above the base
-        renderIcon(PING_TEX, poseStack, -0.5f, 1, 1, 1, 0, 1, 1, 0, 1);
+        renderIcon(ping.type.getTexture(), poseStack, -0.5f, 1, 1, 1, 0, 1, 1, 0, 1);
         poseStack.popPose();
 
         poseStack.popPose();
@@ -190,12 +204,13 @@ public class PingManager {
         BufferUploader.drawWithShader(buffer.end());
     }
 
-
-    private static class Ping {
+    public static class Ping {
         final Vec3 location;
         final long createdAt;
+        final PingType type;
 
-        Ping(Vec3 location, long createdAt) {
+        Ping(PingType type, Vec3 location, long createdAt) {
+            this.type = type;
             this.location = location;
             this.createdAt = createdAt;
         }

@@ -1,18 +1,20 @@
 package com.samuelih.ezroyale.client;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySelector;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.EntityHitResult;
-import net.minecraft.world.phys.HitResult;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.*;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.Optional;
 
@@ -34,7 +36,8 @@ public class ClientKeyHandler {
             Level level = mc.level;
 
             // Do block raytrace
-            HitResult blockHit = level.clip(new ClipContext(from, to, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, mc.player));
+            if (level == null) return;
+            BlockHitResult blockHit = level.clip(new ClipContext(from, to, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, mc.player));
             Vec3 blockHitVec = blockHit.getLocation();
 
             // Check entity hit manually
@@ -56,9 +59,50 @@ public class ClientKeyHandler {
             }
 
             if (entityHit != null) {
-                PingManager.addPing(entityHit.getEntity().position());
-            } else if (blockHit != null && blockHit.getType() != HitResult.Type.MISS) {
-                PingManager.addPing(blockHitVec);
+                addEntityPing(entityHit);
+            } else if (blockHit.getType() != HitResult.Type.MISS) {
+                addBlockPing(level, blockHit);
+            }
+        }
+    }
+
+    private static void addBlockPing(Level level, BlockHitResult blockHit) {
+        var blockPos = blockHit.getBlockPos();
+        var state = level.getBlockState(blockPos);
+
+        if (state.is(Blocks.BARREL)) {
+            PingManager.addPing(PingType.GENERIC, blockHit.getLocation());
+        } else if (state.is(Blocks.CHEST) || state.is(Blocks.TRAPPED_CHEST)) {
+            PingManager.addPing(PingType.LOOT, blockHit.getLocation());
+        } else {
+            PingManager.addPing(PingType.GENERIC, blockHit.getLocation());
+        }
+    }
+
+    private static void addEntityPing(EntityHitResult entityHit) {
+        Entity entity = entityHit.getEntity();
+        Vec3 entityPos = entity.position();
+
+        if (!(entity instanceof ItemEntity itemEntity)) {
+            PingManager.addPing(PingType.GENERIC, entityPos);
+            return;
+        }
+
+        ItemStack stack = itemEntity.getItem();
+        ResourceLocation itemId = ForgeRegistries.ITEMS.getKey(stack.getItem());
+
+        if (itemId != null) {
+            String namespace = itemId.getNamespace();
+            String path = itemId.getPath();
+
+            if (namespace.equals("money") && path.equals("money")) {
+                PingManager.addPing(PingType.MONEY, entityPos);
+            } else if (namespace.equals("gun") && path.equals("gun")) {
+                PingManager.addPing(PingType.GUN, entityPos);
+            } else if (namespace.equals("ammo") && path.equals("ammo")) {
+                PingManager.addPing(PingType.AMMO, entityPos);
+            } else {
+                PingManager.addPing(PingType.GENERIC, entityPos);
             }
         }
     }

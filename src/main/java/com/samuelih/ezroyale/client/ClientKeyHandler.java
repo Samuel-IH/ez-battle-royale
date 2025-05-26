@@ -100,9 +100,9 @@ public class ClientKeyHandler {
 
             if (namespace.equals("money") && path.equals("money")) {
                 sendPing(PingType.MONEY, entityPos);
-            } else if (namespace.equals("gun") && path.equals("gun")) {
+            } else if (namespace.equals("tacz") && path.equals("modern_kinetic_gun")) {
                 sendPing(PingType.GUN, entityPos);
-            } else if (namespace.equals("ammo") && path.equals("ammo")) {
+            } else if (namespace.equals("tacz") && path.equals("ammo")) {
                 sendPing(PingType.AMMO, entityPos);
             } else {
                 sendPing(PingType.GENERIC, entityPos);

@@ -34,7 +34,10 @@ public class PingManager {
 
         if (type == PingType.GENERIC) {
             for (Ping ping : active) {
-                if (ping.type == type && ping.location.distanceToSqr(location) < 1.0 && (now - ping.createdAt) < 500) {
+                if (ping.location.distanceToSqr(location) < 1.0 && (now - ping.createdAt) < 500) {
+                    // Old warning pings also get collapsed into this new ping
+                    if (!(ping.type == PingType.WARNING || ping.type == PingType.GENERIC)) continue;
+
                     active.remove(ping);
                     type = PingType.WARNING;
                     break;

@@ -7,10 +7,12 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.client.event.RenderNameTagEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.joml.Matrix4f;
@@ -212,6 +214,12 @@ public class PingManager {
         }
 
         BufferUploader.drawWithShader(buffer.end());
+    }
+
+    @SubscribeEvent
+    public static void onRenderNameplate(RenderNameTagEvent event) {
+        event.setContent(Component.empty());
+        event.getPoseStack().scale(0f, 0f, 0f); // Hide nameplates
     }
 
     public static class Ping {

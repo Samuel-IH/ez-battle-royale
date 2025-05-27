@@ -1,0 +1,8 @@
+{
+  "dolla_pickup": {
+    "sounds": [
+      { "name": "money:dolla_pickup", "stream": false }
+    ],
+    "subtitle": "Picked up cash"
+  }
+}

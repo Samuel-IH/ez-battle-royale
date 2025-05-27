@@ -1,0 +1,11 @@
+{
+  "item.pickup.money.money": {
+    "replace": true,
+    "sounds": [
+      {
+        "name": "money:dolla_pickup",
+        "type": "event"
+      }
+    ]
+  }
+}

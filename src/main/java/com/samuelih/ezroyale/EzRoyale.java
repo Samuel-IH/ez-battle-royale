@@ -8,8 +8,11 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.logging.LogUtils;
 import com.samuelih.ezroyale.common.ClipboardPacket;
 import com.samuelih.ezroyale.common.NetworkHandler;
+import com.samuelih.ezroyale.ConfigPresets;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.SharedSuggestionProvider;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -127,7 +130,7 @@ public class EzRoyale
     private void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
                 Commands.literal("ezroyale")
-                        .requires(source -> source.hasPermission(2)) // Only allow ops to run this command
+                        .requires(source -> source.hasPermission(2))
                         .then(Commands.literal("start")
                                 .then(Commands.literal("here")
                                         .executes(context -> {
@@ -142,8 +145,25 @@ public class EzRoyale
                                             var z = rand.nextInt(radius * 2) - radius;
                                             return startRoyale(context.getSource(), new Vec3(x, 0, z));
                                         }))
+                                .then(Commands.argument("preset", StringArgumentType.word())
+                                        .suggests((ctx, builder) -> SharedSuggestionProvider.suggest(
+                                                ConfigPresets.getPresetNames(), builder))
+                                        .executes(context -> startRoyalePreset(
+                                                context.getSource(),
+                                                StringArgumentType.getString(context, "preset")))
+                                )
                         )
-                        .requires(source -> source.hasPermission(2)) // Only allow ops to run this command
+                        .then(Commands.literal("save")
+                                .then(Commands.argument("preset", StringArgumentType.word())
+                                        .executes(context -> {
+                                            ConfigPresets.savePreset(
+                                                    context.getSource(),
+                                                    StringArgumentType.getString(context, "preset"),
+                                                    context.getSource().getPosition());
+                                            return 1;
+                                        })
+                                )
+                        )
                         .then(Commands.literal("stop")
                                 .executes(context -> {
                                     ResetGame(context.getSource().getLevel());
@@ -222,6 +242,16 @@ public class EzRoyale
 
         source.sendSuccess(() -> Component.literal("Battle started!"), true);
         return Command.SINGLE_SUCCESS;
+    }
+
+    private int startRoyalePreset(CommandSourceStack source, String presetName) {
+        ConfigPresets.Preset preset = ConfigPresets.loadPreset(presetName);
+        if (preset == null) {
+            source.sendFailure(Component.literal("Preset '" + presetName + "' not found"));
+            return 0;
+        }
+        preset.apply();
+        return startRoyale(source, preset.position);
     }
 
     @SubscribeEvent

@@ -33,9 +33,18 @@ public class Config
             .comment("The time in ticks to wait for respawn. 1 second = 20 ticks.")
             .defineInRange("teamRespawnTicks", 600, 0, 999999);
 
+
     public static final ForgeConfigSpec.DoubleValue SHRINK_TIME_CONFIG = BUILDER
             .comment("The time in minutes to shrink from MAX_WORLD_BORDER_SIZE to MIN_WORLD_BORDER_SIZE.")
             .defineInRange("shrinkTime", 10.0, 0, 999999);
+
+    public static final ForgeConfigSpec.IntValue MONEY_INTERVAL_SECONDS_CONFIG = BUILDER
+            .comment("The time in seconds between giving players money while the storm is running.")
+            .defineInRange("moneyIntervalSeconds", 60, 1, 999999);
+
+    public static final ForgeConfigSpec.IntValue MONEY_MAX_TOTAL_CONFIG = BUILDER
+            .comment("The maximum total amount of money a player can earn from survival payouts over a single storm.")
+            .defineInRange("moneyMaxTotal", 200, 0, 999999);
 
     static final ForgeConfigSpec SPEC = BUILDER.build();
 
@@ -44,6 +53,8 @@ public class Config
     public static double maxRandDistFromCenter;
     public static int teamRespawnTicks;
     public static double shrinkTime;
+    public static int moneyIntervalSeconds;
+    public static int moneyMaxTotal;
 
     private static ConfigCommandMapper[] configMappers;
 
@@ -55,7 +66,9 @@ public class Config
                 new DoubleConfigMapper("minWorldBorderSize", MIN_WORLD_BORDER_SIZE_CONFIG, MIN_WORLD_BORDER_SIZE_CONFIG::set, 0, 999),
                 new DoubleConfigMapper("maxRandDistFromCenter", MAX_RAND_DIST_FROM_CENTER_CONFIG, MAX_RAND_DIST_FROM_CENTER_CONFIG::set, 0, 1),
                 new IntegerConfigMapper("teamRespawnTicks", TEAM_RESPAWN_TICKS_CONFIG, TEAM_RESPAWN_TICKS_CONFIG::set, 0, 999999),
-                new DoubleConfigMapper("shrinkTime", SHRINK_TIME_CONFIG, SHRINK_TIME_CONFIG::set, 0, 999999)
+                new DoubleConfigMapper("shrinkTime", SHRINK_TIME_CONFIG, SHRINK_TIME_CONFIG::set, 0, 999999),
+                new IntegerConfigMapper("moneyIntervalSeconds", MONEY_INTERVAL_SECONDS_CONFIG, MONEY_INTERVAL_SECONDS_CONFIG::set, 1, 999999),
+                new IntegerConfigMapper("moneyMaxTotal", MONEY_MAX_TOTAL_CONFIG, MONEY_MAX_TOTAL_CONFIG::set, 0, 999999)
         };
 
         for (ConfigCommandMapper mapper : configMappers) {
@@ -74,6 +87,8 @@ public class Config
         maxRandDistFromCenter = MAX_RAND_DIST_FROM_CENTER_CONFIG.get();
         teamRespawnTicks = TEAM_RESPAWN_TICKS_CONFIG.get();
         shrinkTime = SHRINK_TIME_CONFIG.get();
+        moneyIntervalSeconds = MONEY_INTERVAL_SECONDS_CONFIG.get();
+        moneyMaxTotal = MONEY_MAX_TOTAL_CONFIG.get();
     }
 
     // Register commands for config

@@ -27,6 +27,8 @@ public class StormPlayerController {
         public boolean waitingForRespawn;
         public int waitingForRespawnTicks;
         public boolean isDead;
+        public int moneyTicksCounter;
+        public int intervalsSurvived;
     }
 
     private final HashMap<UUID, PlayerData> playerData = new HashMap<>();
@@ -215,6 +217,23 @@ public class StormPlayerController {
 
             data.needsLandingCheck = false;
         }
+
+        // survival-based money payout
+        data.moneyTicksCounter++;
+        if (data.moneyTicksCounter >= Config.moneyIntervalSeconds * 20) {
+            data.moneyTicksCounter = 0;
+            data.intervalsSurvived++;
+            int k = data.intervalsSurvived;
+            int maxIntervals = Math.max(1, (int)(Config.shrinkTime * 60 / Config.moneyIntervalSeconds));
+            double sumSquares = maxIntervals * (maxIntervals + 1) * (2L * maxIntervals + 1) / 6.0;
+            double ratio = Config.moneyMaxTotal / sumSquares;
+            int amount = (int)Math.floor(ratio * k * k);
+            if (amount > 0) {
+                player.getInventory().add(new ItemStack(EzRoyale.MONEY.get(), amount));
+                Component message = Component.literal("You survived " + k + " rounds so you get " + amount + " cash!");
+                player.displayClientMessage(message, true);
+            }
+        }
     }
 
     private void launchPlayer(ServerPlayer player) {
@@ -252,9 +271,12 @@ public class StormPlayerController {
             return;
         }
 
-        var playerData = getPlayerData(player);
-        playerData.waitingForRespawn = true;
-        playerData.waitingForRespawnTicks = 0;
+        var data = getPlayerData(player);
+        data.waitingForRespawn = true;
+        data.waitingForRespawnTicks = 0;
+        // reset survival payout counters on death
+        data.moneyTicksCounter = 0;
+        data.intervalsSurvived = 0;
     }
 
     private static boolean hasLivingTeammates(ServerPlayer player) {

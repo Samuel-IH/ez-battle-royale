@@ -93,7 +93,6 @@ public class EzRoyale
         MinecraftForge.EVENT_BUS.register(teamGlow);
         MinecraftForge.EVENT_BUS.register(teamBuilder);
         MinecraftForge.EVENT_BUS.register(playerController);
-        MinecraftForge.EVENT_BUS.register(new TeamWeapons());
         MinecraftForge.EVENT_BUS.register(new ChestLootHandler());
 
         // Register our mod's ForgeConfigSpec so that Forge can create and load the config file for us

@@ -200,7 +200,7 @@ public class StormPlayerController {
         }
 
         // Check if the player needs landing check and has landed on the ground
-        if (data.needsLandingCheck && player.onGround()) {
+        if (data.needsLandingCheck && (player.onGround() || player.isInWater())) {
             // remove elytra
             ItemStack chestplate = player.getInventory().armor.get(2);
             if (chestplate.getItem() == Items.ELYTRA) {

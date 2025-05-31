@@ -303,35 +303,5 @@ public class EzRoyale
             storm.tickStorm(level);
         }
 
-        // Process queued equipment actions for AI skeletons (deferred to avoid modifying goals mid-iteration)
-        for (Skeleton sk : level.getEntitiesOfClass(Skeleton.class,
-                s -> s.getPersistentData().getBoolean("BR_debug"))) {
-            CompoundTag pd = sk.getPersistentData();
-            if (pd.getBoolean("BR_pendingGun")) {
-                pd.remove("BR_pendingGun");
-                sk.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(BattleRoyaleAI.GUN_ITEM));
-                BattleRoyaleAI.debug(sk, "processAIEquipment: equipped gun");
-            }
-            if (pd.getBoolean("BR_equipHead")) {
-                pd.remove("BR_equipHead");
-                sk.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.DIAMOND_HELMET));
-                BattleRoyaleAI.debug(sk, "processAIEquipment: equipped HEAD");
-            }
-            if (pd.getBoolean("BR_equipChest")) {
-                pd.remove("BR_equipChest");
-                sk.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.DIAMOND_CHESTPLATE));
-                BattleRoyaleAI.debug(sk, "processAIEquipment: equipped CHEST");
-            }
-            if (pd.getBoolean("BR_equipLegs")) {
-                pd.remove("BR_equipLegs");
-                sk.setItemSlot(EquipmentSlot.LEGS, new ItemStack(Items.DIAMOND_LEGGINGS));
-                BattleRoyaleAI.debug(sk, "processAIEquipment: equipped LEGS");
-            }
-            if (pd.getBoolean("BR_equipFeet")) {
-                pd.remove("BR_equipFeet");
-                sk.setItemSlot(EquipmentSlot.FEET, new ItemStack(Items.DIAMOND_BOOTS));
-                BattleRoyaleAI.debug(sk, "processAIEquipment: equipped FEET");
-            }
-        }
     }
 }

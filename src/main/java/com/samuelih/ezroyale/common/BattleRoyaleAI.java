@@ -1,10 +1,7 @@
 package com.samuelih.ezroyale.common;
 
 import com.mojang.logging.LogUtils;
-import com.samuelih.ezroyale.EzRoyale;
-import com.samuelih.ezroyale.GamePhase;
-import com.samuelih.ezroyale.GameState;
-import com.samuelih.ezroyale.ShrinkingStorm;
+import com.samuelih.ezroyale.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -14,16 +11,13 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
-import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.monster.Skeleton;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.border.WorldBorder;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
-
 import net.minecraft.world.phys.Vec3;
 import org.slf4j.Logger;
 
@@ -129,7 +123,7 @@ public class BattleRoyaleAI {
                     BlockPos pos = center.offset(dx, 0, dz);
                     BlockEntity be = world.getBlockEntity(pos);
                     if (be instanceof RandomizableContainerBlockEntity container
-                        && hasValuable(container)) {
+                        && hasValuable((ServerLevel)world, container)) {
                         double dist = center.distSqr(pos);
                         if (dist < bestDist) {
                             bestDist = dist;
@@ -185,7 +179,8 @@ public class BattleRoyaleAI {
             targetPos = null;
         }
 
-        private boolean hasValuable(Container container) {
+        private boolean hasValuable(ServerLevel level, RandomizableContainerBlockEntity container) {
+            ChestLootHandler.handleLootIfNeeded(level, container);
             for (int i = 0; i < container.getContainerSize(); i++) {
                 ItemStack stack = container.getItem(i);
                 if (!stack.isEmpty() && (stack.getItem() == EzRoyale.MONEY.get()

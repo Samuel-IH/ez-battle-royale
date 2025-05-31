@@ -53,7 +53,7 @@ public class ChestLootHandler {
         }
 
         if (blockEntity instanceof ChestBlockEntity || blockEntity instanceof BarrelBlockEntity) {
-            handleLoot(level, (RandomizableContainerBlockEntity) blockEntity);
+            handleLootIfNeeded(level, (RandomizableContainerBlockEntity) blockEntity);
         }
     }
 
@@ -77,7 +77,7 @@ public class ChestLootHandler {
         return null;
     }
 
-    private static void handleLoot(ServerLevel level, RandomizableContainerBlockEntity chest) {
+    public static void handleLootIfNeeded(ServerLevel level, RandomizableContainerBlockEntity chest) {
         var tag = chest.getPersistentData();
         String roundId = tag.getString(GENERATED_FOR_ROUND_KEY);
 

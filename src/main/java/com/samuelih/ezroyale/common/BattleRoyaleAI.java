@@ -214,8 +214,11 @@ public class BattleRoyaleAI {
                 Item item = stack.getItem();
                 if (skeleton.getItemBySlot(EquipmentSlot.MAINHAND).isEmpty() && item == GUN_ITEM) {
                     ItemStack gun = container.removeItem(i, 1);
-                    skeleton.setItemSlot(EquipmentSlot.MAINHAND, gun);
-                    debug(skeleton, "pickUpValuables: equipped gun " + gun);
+                    ServerLevel _world = (ServerLevel) skeleton.level();
+                    _world.getServer().execute(() -> {
+                        skeleton.setItemSlot(EquipmentSlot.MAINHAND, gun);
+                        debug(skeleton, "pickUpValuables: equipped gun " + gun);
+                    });
                     continue;
                 }
                 int count = stack.getCount();
@@ -260,25 +263,33 @@ public class BattleRoyaleAI {
             CompoundTag data = skeleton.getPersistentData();
             int diamonds = data.getInt("BR_diamonds");
             debug(skeleton, "EquipDiamondArmorGoal.start diamonds=" + diamonds);
-            if (skeleton.getItemBySlot(EquipmentSlot.HEAD).isEmpty() && diamonds >= 5) {
-                skeleton.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.DIAMOND_HELMET));
-                data.putInt("BR_diamonds", diamonds - 5);
-                return;
-            }
-            if (skeleton.getItemBySlot(EquipmentSlot.CHEST).isEmpty() && diamonds >= 8) {
-                skeleton.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.DIAMOND_CHESTPLATE));
-                data.putInt("BR_diamonds", diamonds - 8);
-                return;
-            }
-            if (skeleton.getItemBySlot(EquipmentSlot.LEGS).isEmpty() && diamonds >= 7) {
-                skeleton.setItemSlot(EquipmentSlot.LEGS, new ItemStack(Items.DIAMOND_LEGGINGS));
-                data.putInt("BR_diamonds", diamonds - 7);
-                return;
-            }
-            if (skeleton.getItemBySlot(EquipmentSlot.FEET).isEmpty() && diamonds >= 4) {
-                skeleton.setItemSlot(EquipmentSlot.FEET, new ItemStack(Items.DIAMOND_BOOTS));
-                data.putInt("BR_diamonds", diamonds - 4);
-            }
+            ServerLevel _world = (ServerLevel) skeleton.level();
+            _world.getServer().execute(() -> {
+                CompoundTag d = skeleton.getPersistentData();
+                if (skeleton.getItemBySlot(EquipmentSlot.HEAD).isEmpty() && diamonds >= 5) {
+                    skeleton.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.DIAMOND_HELMET));
+                    d.putInt("BR_diamonds", diamonds - 5);
+                    debug(skeleton, "EquipDiamondArmorGoal.equipped HEAD");
+                    return;
+                }
+                if (skeleton.getItemBySlot(EquipmentSlot.CHEST).isEmpty() && diamonds >= 8) {
+                    skeleton.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.DIAMOND_CHESTPLATE));
+                    d.putInt("BR_diamonds", diamonds - 8);
+                    debug(skeleton, "EquipDiamondArmorGoal.equipped CHEST");
+                    return;
+                }
+                if (skeleton.getItemBySlot(EquipmentSlot.LEGS).isEmpty() && diamonds >= 7) {
+                    skeleton.setItemSlot(EquipmentSlot.LEGS, new ItemStack(Items.DIAMOND_LEGGINGS));
+                    d.putInt("BR_diamonds", diamonds - 7);
+                    debug(skeleton, "EquipDiamondArmorGoal.equipped LEGS");
+                    return;
+                }
+                if (skeleton.getItemBySlot(EquipmentSlot.FEET).isEmpty() && diamonds >= 4) {
+                    skeleton.setItemSlot(EquipmentSlot.FEET, new ItemStack(Items.DIAMOND_BOOTS));
+                    d.putInt("BR_diamonds", diamonds - 4);
+                    debug(skeleton, "EquipDiamondArmorGoal.equipped FEET");
+                }
+            });
         }
     }
 

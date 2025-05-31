@@ -200,7 +200,7 @@ public class StormPlayerController {
         }
 
         // Check if the player needs landing check and has landed on the ground
-        if (data.needsLandingCheck && player.onGround()) {
+        if (data.needsLandingCheck && (player.onGround() || player.isInWater())) {
             // remove elytra
             ItemStack chestplate = player.getInventory().armor.get(2);
             if (chestplate.getItem() == Items.ELYTRA) {
@@ -225,6 +225,9 @@ public class StormPlayerController {
             data.intervalsSurvived++;
             int k = data.intervalsSurvived;
             int maxIntervals = Math.max(1, (int)(Config.shrinkTime * 60 / Config.moneyIntervalSeconds));
+            // clamp
+            k = Math.min(k, maxIntervals);
+
             double sumSquares = maxIntervals * (maxIntervals + 1) * (2L * maxIntervals + 1) / 6.0;
             double ratio = Config.moneyMaxTotal / sumSquares;
             int amount = (int)Math.floor(ratio * k * k);

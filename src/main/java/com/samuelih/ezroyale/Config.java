@@ -81,7 +81,7 @@ public class Config
         updateValues();
     }
 
-    private static void updateValues() {
+    public static void updateValues() {
         maxWorldBorderSize = MAX_WORLD_BORDER_SIZE_CONFIG.get();
         minWorldBorderSize = MIN_WORLD_BORDER_SIZE_CONFIG.get();
         maxRandDistFromCenter = MAX_RAND_DIST_FROM_CENTER_CONFIG.get();

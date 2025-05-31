@@ -16,6 +16,10 @@ import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.entity.EntityType;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
@@ -216,6 +220,36 @@ public class StormPlayerController {
             player.displayClientMessage(message, true);
 
             data.needsLandingCheck = false;
+        }
+
+        if (!data.needsLandingCheck && !data.waitingForRespawn) {
+            double px = player.getX();
+            double pz = player.getZ();
+            BlockPos basePos = new BlockPos((int) Math.floor(px), 0, (int) Math.floor(pz));
+            BlockPos[] samples = new BlockPos[] {
+                basePos,
+                basePos.offset(2, 0, 0),
+                basePos.offset(-2, 0, 0),
+                basePos.offset(0, 0, 2),
+                basePos.offset(0, 0, -2)
+            };
+            double sum = 0;
+            for (BlockPos sample : samples) {
+                BlockPos groundPos = level.getChunk(sample).getWorldForge().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, sample);
+                sum += groundPos.getY();
+            }
+            double avgGround = sum / samples.length;
+            double heightAbove = player.getY() - avgGround;
+            if (heightAbove > 55) {
+                var lightning = EntityType.LIGHTNING_BOLT.create(level);
+                if (lightning != null) {
+                    lightning.setPos(player.getX(), player.getY(), player.getZ());
+                    level.addFreshEntity(lightning);
+                }
+            } else if (heightAbove > 40) {
+                Component warn = Component.literal("You can feel the static in the air!");
+                player.displayClientMessage(warn, true);
+            }
         }
 
         // survival-based money payout

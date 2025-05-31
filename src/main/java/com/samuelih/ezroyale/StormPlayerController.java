@@ -226,9 +226,7 @@ public class StormPlayerController {
             int k = data.intervalsSurvived;
             int maxIntervals = Math.max(1, (int)(Config.shrinkTime * 60 / Config.moneyIntervalSeconds));
             // clamp
-            if (k > maxIntervals) {
-                k = maxIntervals;
-            }
+            k = Math.min(k, maxIntervals);
 
             double sumSquares = maxIntervals * (maxIntervals + 1) * (2L * maxIntervals + 1) / 6.0;
             double ratio = Config.moneyMaxTotal / sumSquares;

@@ -8,6 +8,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.logging.LogUtils;
 import com.samuelih.ezroyale.common.ClipboardPacket;
 import com.samuelih.ezroyale.common.NetworkHandler;
+import com.samuelih.ezroyale.common.BattleRoyaleAI;
 import com.samuelih.ezroyale.ConfigPresets;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -23,6 +24,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.monster.Zombie;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
@@ -171,6 +175,8 @@ public class EzRoyale
                                     context.getSource().sendSuccess(() -> message, true);
                                     return 1;
                                 }))
+                        .then(Commands.literal("summon_ai")
+                                .executes(context -> summonAI(context.getSource())))
         );
 
         dispatcher.register(
@@ -252,6 +258,23 @@ public class EzRoyale
         }
         preset.apply();
         return startRoyale(source, preset.position);
+    }
+    
+    private int summonAI(CommandSourceStack source) throws CommandSyntaxException {
+        ServerPlayer player = source.getPlayerOrException();
+        ServerLevel level = player.serverLevel();
+        Zombie zombie = EntityType.ZOMBIE.create(level);
+        if (zombie == null) {
+            source.sendFailure(Component.literal("Failed to create AI zombie"));
+            return 0;
+        }
+        zombie.setCustomName(Component.literal("AI"));
+        zombie.setCustomNameVisible(true);
+        BattleRoyaleAI.applyAI(zombie, gameState, storm);
+        zombie.moveTo(player.getX(), player.getY(), player.getZ(), 0F, 0F);
+        level.addFreshEntity(zombie);
+        source.sendSuccess(() -> Component.literal("Summoned AI zombie"), true);
+        return 1;
     }
 
     @SubscribeEvent

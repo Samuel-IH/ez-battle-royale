@@ -25,7 +25,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.monster.Skeleton;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.Items;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
@@ -263,17 +265,19 @@ public class EzRoyale
     private int summonAI(CommandSourceStack source) throws CommandSyntaxException {
         ServerPlayer player = source.getPlayerOrException();
         ServerLevel level = player.serverLevel();
-        Zombie zombie = EntityType.ZOMBIE.create(level);
-        if (zombie == null) {
-            source.sendFailure(Component.literal("Failed to create AI zombie"));
+        Skeleton skeleton = EntityType.SKELETON.create(level);
+        if (skeleton == null) {
+            source.sendFailure(Component.literal("Failed to create AI skeleton"));
             return 0;
         }
-        zombie.setCustomName(Component.literal("AI"));
-        zombie.setCustomNameVisible(true);
-        BattleRoyaleAI.applyAI(zombie, gameState, storm);
-        zombie.moveTo(player.getX(), player.getY(), player.getZ(), 0F, 0F);
-        level.addFreshEntity(zombie);
-        source.sendSuccess(() -> Component.literal("Summoned AI zombie"), true);
+        skeleton.setCustomName(Component.literal("AI"));
+        skeleton.setCustomNameVisible(true);
+        skeleton.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.LEATHER_HELMET));
+        skeleton.getPersistentData().putBoolean("BR_debug", true);
+        BattleRoyaleAI.applyAI(skeleton, gameState, storm);
+        skeleton.moveTo(player.getX(), player.getY(), player.getZ(), 0F, 0F);
+        level.addFreshEntity(skeleton);
+        source.sendSuccess(() -> Component.literal("Summoned AI skeleton"), true);
         return 1;
     }
 

@@ -1,11 +1,13 @@
 package com.samuelih.ezroyale.common;
 
+import com.mojang.logging.LogUtils;
 import com.samuelih.ezroyale.EzRoyale;
 import com.samuelih.ezroyale.GamePhase;
 import com.samuelih.ezroyale.GameState;
 import com.samuelih.ezroyale.ShrinkingStorm;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -13,7 +15,7 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
-import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.monster.Skeleton;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -23,117 +25,139 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
 
 import net.minecraft.world.phys.Vec3;
+import org.slf4j.Logger;
 
 import java.util.EnumSet;
 
 public class BattleRoyaleAI {
     private static final int CHEST_SCAN_RADIUS = 32;
+    private static final Logger LOGGER = LogUtils.getLogger();
 
-    public static void applyAI(Zombie zombie, GameState gameState, ShrinkingStorm storm) {
-        zombie.goalSelector.removeAllGoals(goal -> true);
-        zombie.targetSelector.removeAllGoals(goal -> true);
+    public static void applyAI(Skeleton skeleton, GameState gameState, ShrinkingStorm storm) {
+        skeleton.goalSelector.removeAllGoals(goal -> true);
+        skeleton.targetSelector.removeAllGoals(goal -> true);
 
-        zombie.setPersistenceRequired();
+        skeleton.setPersistenceRequired();
 
-        zombie.goalSelector.addGoal(0, new AvoidStormGoal(zombie, storm));
-        zombie.goalSelector.addGoal(1, new MoveToContainerGoal(zombie, gameState));
-        zombie.targetSelector.addGoal(0,
-            new NearestAttackableTargetGoal<>(zombie, Player.class, true));
-        zombie.goalSelector.addGoal(2,
-            new MeleeAttackGoal(zombie, 1.0D, true));
-        zombie.goalSelector.addGoal(3, new EquipDiamondArmorGoal(zombie, gameState));
-        zombie.goalSelector.addGoal(4, new TrendToCenterGoal(zombie, gameState, storm));
+        skeleton.goalSelector.addGoal(0, new AvoidStormGoal(skeleton, storm));
+        skeleton.goalSelector.addGoal(1, new MoveToContainerGoal(skeleton, gameState));
+        skeleton.targetSelector.addGoal(0,
+            new NearestAttackableTargetGoal<>(skeleton, Player.class, true));
+        skeleton.goalSelector.addGoal(2,
+            new MeleeAttackGoal(skeleton, 1.0D, true));
+        skeleton.goalSelector.addGoal(3, new EquipDiamondArmorGoal(skeleton, gameState));
+        skeleton.goalSelector.addGoal(4, new TrendToCenterGoal(skeleton, gameState, storm));
+    }
+
+    private static void debug(Skeleton skeleton, String message) {
+        LOGGER.info("[AI] {}", message);
+        CompoundTag data = skeleton.getPersistentData();
+        if (data.getBoolean("BR_debug")) {
+            ServerLevel world = (ServerLevel) skeleton.level();
+            world.getServer().getPlayerList().broadcastSystemMessage(
+                Component.literal("[AI DEBUG] " + message), false);
+        }
     }
 
     private static class AvoidStormGoal extends Goal {
-        private final Zombie zombie;
+        private final Skeleton skeleton;
         private final ShrinkingStorm storm;
 
-        AvoidStormGoal(Zombie zombie, ShrinkingStorm storm) {
-            this.zombie = zombie;
+        AvoidStormGoal(Skeleton skeleton, ShrinkingStorm storm) {
+            this.skeleton = skeleton;
             this.storm = storm;
             this.setFlags(EnumSet.of(Flag.MOVE));
         }
 
         @Override
         public boolean canUse() {
-            Level world = zombie.level();
-            if (!(world instanceof ServerLevel)) {
-                return false;
-            }
-            WorldBorder border = world.getWorldBorder();
-            return !border.isWithinBounds(zombie.getX(), zombie.getZ());
+            Level world = skeleton.level();
+            boolean result = world instanceof ServerLevel &&
+                !world.getWorldBorder().isWithinBounds(
+                    skeleton.getX(), skeleton.getZ());
+            debug(skeleton, "AvoidStormGoal.canUse=" + result);
+            return result;
         }
 
         @Override
         public void start() {
+            debug(skeleton, "AvoidStormGoal.start");
             updatePath();
         }
 
         @Override
         public void tick() {
+            debug(skeleton, "AvoidStormGoal.tick");
             updatePath();
         }
 
         private void updatePath() {
-            ServerLevel world = (ServerLevel) zombie.level();
+            ServerLevel world = (ServerLevel) skeleton.level();
             Vec3 spawnCenter = storm.getSpawnCenter(world);
-            BlockPos safe = new BlockPos((int) spawnCenter.x, (int) spawnCenter.y, (int) spawnCenter.z);
-            zombie.getNavigation().moveTo(safe.getX(), safe.getY(), safe.getZ(), 1.0D);
+            BlockPos safe = new BlockPos(
+                (int) spawnCenter.x, (int) spawnCenter.y, (int) spawnCenter.z);
+            debug(skeleton, "AvoidStormGoal.updatePath -> " + safe);
+            skeleton.getNavigation().moveTo(
+                safe.getX(), safe.getY(), safe.getZ(), 1.0D);
         }
     }
 
     private static class MoveToContainerGoal extends Goal {
-        private final Zombie zombie;
+        private final Skeleton skeleton;
         private final GameState gameState;
         private BlockPos targetPos;
 
-        MoveToContainerGoal(Zombie zombie, GameState gameState) {
-            this.zombie = zombie;
+        MoveToContainerGoal(Skeleton skeleton, GameState gameState) {
+            this.skeleton = skeleton;
             this.gameState = gameState;
             this.setFlags(EnumSet.of(Flag.MOVE));
         }
 
         @Override
         public boolean canUse() {
+            debug(skeleton, "MoveToContainerGoal.canUse");
             if (gameState.getPhase() != GamePhase.RUNNING) {
+                debug(skeleton, "MoveToContainerGoal.canUse: not RUNNING");
                 return false;
             }
-            Level world = zombie.level();
-            BlockPos center = zombie.blockPosition();
+            Level world = skeleton.level();
+            BlockPos center = skeleton.blockPosition();
             double bestDist = Double.MAX_VALUE;
             BlockPos bestPos = null;
             for (int dx = -CHEST_SCAN_RADIUS; dx <= CHEST_SCAN_RADIUS; dx++) {
                 for (int dz = -CHEST_SCAN_RADIUS; dz <= CHEST_SCAN_RADIUS; dz++) {
                     BlockPos pos = center.offset(dx, 0, dz);
                     BlockEntity be = world.getBlockEntity(pos);
-                    if (be instanceof RandomizableContainerBlockEntity) {
-                        Container container = (RandomizableContainerBlockEntity) be;
-                        if (hasValuable(container)) {
-                            double dist = center.distSqr(pos);
-                            if (dist < bestDist) {
-                                bestDist = dist;
-                                bestPos = pos;
-                            }
+                    if (be instanceof RandomizableContainerBlockEntity container
+                        && hasValuable(container)) {
+                        double dist = center.distSqr(pos);
+                        if (dist < bestDist) {
+                            bestDist = dist;
+                            bestPos = pos;
                         }
                     }
                 }
             }
-            if (bestPos != null && zombie.getNavigation().createPath(bestPos, 1) != null) {
+            if (bestPos != null && skeleton.getNavigation().createPath(bestPos, 1) != null) {
+                debug(skeleton, "MoveToContainerGoal.canUse: found " + bestPos);
                 targetPos = bestPos;
                 return true;
             }
+            debug(skeleton, "MoveToContainerGoal.canUse: no target");
             return false;
         }
 
         @Override
         public boolean canContinueToUse() {
-            return targetPos != null && !zombie.getNavigation().isDone();
+            boolean cont = targetPos != null && !skeleton.getNavigation().isDone();
+            debug(skeleton, "MoveToContainerGoal.canContinueToUse=" + cont);
+            return cont;
         }
 
         @Override
         public void start() {
-            zombie.getNavigation().moveTo(
+            debug(skeleton, "MoveToContainerGoal.start -> " + targetPos);
+            skeleton.getNavigation().moveTo(
                 targetPos.getX() + 0.5,
                 targetPos.getY() + 1,
                 targetPos.getZ() + 0.5,
@@ -142,20 +166,22 @@ public class BattleRoyaleAI {
 
         @Override
         public void tick() {
-            if (targetPos != null && zombie.blockPosition().closerThan(targetPos, 1.5D)) {
-                Level world = zombie.level();
+            debug(skeleton, "MoveToContainerGoal.tick target=" + targetPos);
+            if (targetPos != null && skeleton.blockPosition().closerThan(targetPos, 1.5D)) {
+                Level world = skeleton.level();
                 BlockEntity be = world.getBlockEntity(targetPos);
-                if (be instanceof RandomizableContainerBlockEntity) {
-                    RandomizableContainerBlockEntity container = (RandomizableContainerBlockEntity) be;
-                    pickUpValuables(zombie, container);
+                if (be instanceof RandomizableContainerBlockEntity container) {
+                    pickUpValuables(skeleton, container);
                     container.setChanged();
                 }
+                debug(skeleton, "MoveToContainerGoal.tick arrived at " + targetPos);
                 targetPos = null;
             }
         }
 
         @Override
         public void stop() {
+            debug(skeleton, "MoveToContainerGoal.stop");
             targetPos = null;
         }
 
@@ -170,8 +196,8 @@ public class BattleRoyaleAI {
             return false;
         }
 
-        private void pickUpValuables(Zombie zombie, Container container) {
-            CompoundTag data = zombie.getPersistentData();
+        private void pickUpValuables(Skeleton skeleton, Container container) {
+            CompoundTag data = skeleton.getPersistentData();
             int moneyCount = data.getInt("BR_money");
             int diamondCount = data.getInt("BR_diamonds");
             for (int i = 0; i < container.getContainerSize(); i++) {
@@ -190,71 +216,66 @@ public class BattleRoyaleAI {
             }
             data.putInt("BR_money", moneyCount);
             data.putInt("BR_diamonds", diamondCount);
+            debug(skeleton, String.format("pickUpValuables: money=%d, diamonds=%d", moneyCount, diamondCount));
         }
     }
 
     private static class EquipDiamondArmorGoal extends Goal {
-        private final Zombie zombie;
+        private final Skeleton skeleton;
         private final GameState gameState;
 
-        EquipDiamondArmorGoal(Zombie zombie, GameState gameState) {
-            this.zombie = zombie;
+        EquipDiamondArmorGoal(Skeleton skeleton, GameState gameState) {
+            this.skeleton = skeleton;
             this.gameState = gameState;
             this.setFlags(EnumSet.of(Flag.MOVE));
         }
 
         @Override
         public boolean canUse() {
-            if (gameState.getPhase() != GamePhase.RUNNING) {
-                return false;
-            }
-            CompoundTag data = zombie.getPersistentData();
-            int diamonds = data.getInt("BR_diamonds");
-            if (diamonds <= 0) {
-                return false;
-            }
-            if (!zombie.getItemBySlot(EquipmentSlot.HEAD).isEmpty()
-                && !zombie.getItemBySlot(EquipmentSlot.CHEST).isEmpty()
-                && !zombie.getItemBySlot(EquipmentSlot.LEGS).isEmpty()
-                && !zombie.getItemBySlot(EquipmentSlot.FEET).isEmpty()) {
-                return false;
-            }
-            return true;
+            boolean can = gameState.getPhase() == GamePhase.RUNNING
+                && skeleton.getPersistentData().getInt("BR_diamonds") > 0
+                && (skeleton.getItemBySlot(EquipmentSlot.HEAD).isEmpty()
+                    || skeleton.getItemBySlot(EquipmentSlot.CHEST).isEmpty()
+                    || skeleton.getItemBySlot(EquipmentSlot.LEGS).isEmpty()
+                    || skeleton.getItemBySlot(EquipmentSlot.FEET).isEmpty());
+            debug(skeleton, "EquipDiamondArmorGoal.canUse=" + can);
+            return can;
         }
 
         @Override
         public void start() {
-            CompoundTag data = zombie.getPersistentData();
+            CompoundTag data = skeleton.getPersistentData();
             int diamonds = data.getInt("BR_diamonds");
-            if (zombie.getItemBySlot(EquipmentSlot.HEAD).isEmpty() && diamonds > 0) {
-                zombie.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.DIAMOND_HELMET));
+            debug(skeleton, "EquipDiamondArmorGoal.start diamonds=" + diamonds);
+            if (skeleton.getItemBySlot(EquipmentSlot.HEAD).isEmpty() && diamonds > 0) {
+                skeleton.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.DIAMOND_HELMET));
                 data.putInt("BR_diamonds", diamonds - 1);
                 return;
             }
-            if (zombie.getItemBySlot(EquipmentSlot.CHEST).isEmpty() && diamonds > 0) {
-                zombie.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.DIAMOND_CHESTPLATE));
+            if (skeleton.getItemBySlot(EquipmentSlot.CHEST).isEmpty() && diamonds > 0) {
+                skeleton.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.DIAMOND_CHESTPLATE));
                 data.putInt("BR_diamonds", diamonds - 1);
                 return;
             }
-            if (zombie.getItemBySlot(EquipmentSlot.LEGS).isEmpty() && diamonds > 0) {
-                zombie.setItemSlot(EquipmentSlot.LEGS, new ItemStack(Items.DIAMOND_LEGGINGS));
+            if (skeleton.getItemBySlot(EquipmentSlot.LEGS).isEmpty() && diamonds > 0) {
+                skeleton.setItemSlot(EquipmentSlot.LEGS, new ItemStack(Items.DIAMOND_LEGGINGS));
                 data.putInt("BR_diamonds", diamonds - 1);
                 return;
             }
-            if (zombie.getItemBySlot(EquipmentSlot.FEET).isEmpty() && diamonds > 0) {
-                zombie.setItemSlot(EquipmentSlot.FEET, new ItemStack(Items.DIAMOND_BOOTS));
+            if (skeleton.getItemBySlot(EquipmentSlot.FEET).isEmpty() && diamonds > 0) {
+                skeleton.setItemSlot(EquipmentSlot.FEET, new ItemStack(Items.DIAMOND_BOOTS));
                 data.putInt("BR_diamonds", diamonds - 1);
             }
         }
     }
 
     private static class TrendToCenterGoal extends Goal {
-        private final Zombie zombie;
+        private final Skeleton skeleton;
         private final GameState gameState;
         private final ShrinkingStorm storm;
 
-        TrendToCenterGoal(Zombie zombie, GameState gameState, ShrinkingStorm storm) {
-            this.zombie = zombie;
+        TrendToCenterGoal(Skeleton skeleton, GameState gameState, ShrinkingStorm storm) {
+            this.skeleton = skeleton;
             this.gameState = gameState;
             this.storm = storm;
             this.setFlags(EnumSet.of(Flag.MOVE));
@@ -262,16 +283,21 @@ public class BattleRoyaleAI {
 
         @Override
         public boolean canUse() {
-            return gameState.getPhase() == GamePhase.RUNNING
-                && zombie.getNavigation().isDone();
+            boolean can = gameState.getPhase() == GamePhase.RUNNING
+                && skeleton.getNavigation().isDone();
+            debug(skeleton, "TrendToCenterGoal.canUse=" + can);
+            return can;
         }
 
         @Override
         public void tick() {
-            ServerLevel world = (ServerLevel) zombie.level();
+            ServerLevel world = (ServerLevel) skeleton.level();
             Vec3 spawnCenter = storm.getSpawnCenter(world);
-            BlockPos centerPos = new BlockPos((int) spawnCenter.x, (int) spawnCenter.y, (int) spawnCenter.z);
-            zombie.getNavigation().moveTo(centerPos.getX(), centerPos.getY(), centerPos.getZ(), 0.8D);
+            BlockPos centerPos = new BlockPos(
+                (int) spawnCenter.x, (int) spawnCenter.y, (int) spawnCenter.z);
+            debug(skeleton, "TrendToCenterGoal.tick -> " + centerPos);
+            skeleton.getNavigation().moveTo(
+                centerPos.getX(), centerPos.getY(), centerPos.getZ(), 0.8D);
         }
     }
 }

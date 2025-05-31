@@ -242,24 +242,24 @@ public class BattleRoyaleAI {
             CompoundTag data = skeleton.getPersistentData();
             int diamonds = data.getInt("BR_diamonds");
             debug(skeleton, "EquipDiamondArmorGoal.start diamonds=" + diamonds);
-            if (skeleton.getItemBySlot(EquipmentSlot.HEAD).isEmpty() && diamonds > 0) {
+            if (skeleton.getItemBySlot(EquipmentSlot.HEAD).isEmpty() && diamonds >= 5) {
                 skeleton.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.DIAMOND_HELMET));
-                data.putInt("BR_diamonds", diamonds - 1);
+                data.putInt("BR_diamonds", diamonds - 5);
                 return;
             }
-            if (skeleton.getItemBySlot(EquipmentSlot.CHEST).isEmpty() && diamonds > 0) {
+            if (skeleton.getItemBySlot(EquipmentSlot.CHEST).isEmpty() && diamonds >= 8) {
                 skeleton.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.DIAMOND_CHESTPLATE));
-                data.putInt("BR_diamonds", diamonds - 1);
+                data.putInt("BR_diamonds", diamonds - 8);
                 return;
             }
-            if (skeleton.getItemBySlot(EquipmentSlot.LEGS).isEmpty() && diamonds > 0) {
+            if (skeleton.getItemBySlot(EquipmentSlot.LEGS).isEmpty() && diamonds >= 7) {
                 skeleton.setItemSlot(EquipmentSlot.LEGS, new ItemStack(Items.DIAMOND_LEGGINGS));
-                data.putInt("BR_diamonds", diamonds - 1);
+                data.putInt("BR_diamonds", diamonds - 7);
                 return;
             }
-            if (skeleton.getItemBySlot(EquipmentSlot.FEET).isEmpty() && diamonds > 0) {
+            if (skeleton.getItemBySlot(EquipmentSlot.FEET).isEmpty() && diamonds >= 4) {
                 skeleton.setItemSlot(EquipmentSlot.FEET, new ItemStack(Items.DIAMOND_BOOTS));
-                data.putInt("BR_diamonds", diamonds - 1);
+                data.putInt("BR_diamonds", diamonds - 4);
             }
         }
     }

@@ -9,6 +9,8 @@ Dear AI Agent, here's what you need to know about this project, in a quick, to-t
   - (TacZ) supported via custom loot tables that use TacZ weapons and attachments
   - (Lost Cities) supported via lost cities override that makes it use our loot table.
 
+- **ResourceLocation usage**: when defining resource locations, use `ResourceLocation.fromNamespaceAndPath(namespace, path)` or `ResourceLocation.tryParse("namespace:path")` instead of `new ResourceLocation(...)`, consistent with existing patterns in PingType and ChestLootHandler.
+
 An overview of the current features, and how they're implemented:
 - A storm that shrinks, and is configurable (ShrinkingStorm, Config, config/*)
 - A small set of predefined teams, named by color, with commands that allow players to switch before the round starts.

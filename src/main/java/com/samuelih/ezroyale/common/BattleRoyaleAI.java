@@ -5,8 +5,10 @@ import com.samuelih.ezroyale.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
@@ -19,6 +21,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.slf4j.Logger;
 
 import java.util.EnumSet;
@@ -26,6 +29,8 @@ import java.util.EnumSet;
 public class BattleRoyaleAI {
     private static final int CHEST_SCAN_RADIUS = 32;
     private static final Logger LOGGER = LogUtils.getLogger();
+    private static final ResourceLocation GUN_ID = ResourceLocation.fromNamespaceAndPath("tacz", "modern_kinetic_gun");
+    private static final Item GUN_ITEM = ForgeRegistries.ITEMS.getValue(GUN_ID);
 
     public static void applyAI(Skeleton skeleton, GameState gameState, ShrinkingStorm storm) {
         skeleton.goalSelector.removeAllGoals(goal -> true);
@@ -183,8 +188,14 @@ public class BattleRoyaleAI {
             ChestLootHandler.handleLootIfNeeded(level, container);
             for (int i = 0; i < container.getContainerSize(); i++) {
                 ItemStack stack = container.getItem(i);
-                if (!stack.isEmpty() && (stack.getItem() == EzRoyale.MONEY.get()
-                    || stack.getItem() == Items.DIAMOND)) {
+                if (stack.isEmpty()) {
+                    continue;
+                }
+                Item item = stack.getItem();
+                if (item == EzRoyale.MONEY.get() || item == Items.DIAMOND) {
+                    return true;
+                }
+                if (skeleton.getItemBySlot(EquipmentSlot.MAINHAND).isEmpty() && item == GUN_ITEM) {
                     return true;
                 }
             }
@@ -200,11 +211,18 @@ public class BattleRoyaleAI {
                 if (stack.isEmpty()) {
                     continue;
                 }
+                Item item = stack.getItem();
+                if (skeleton.getItemBySlot(EquipmentSlot.MAINHAND).isEmpty() && item == GUN_ITEM) {
+                    ItemStack gun = container.removeItem(i, 1);
+                    skeleton.setItemSlot(EquipmentSlot.MAINHAND, gun);
+                    debug(skeleton, "pickUpValuables: equipped gun " + gun);
+                    continue;
+                }
                 int count = stack.getCount();
-                if (stack.getItem() == EzRoyale.MONEY.get()) {
+                if (item == EzRoyale.MONEY.get()) {
                     moneyCount += count;
                     container.removeItem(i, count);
-                } else if (stack.getItem() == Items.DIAMOND) {
+                } else if (item == Items.DIAMOND) {
                     diamondCount += count;
                     container.removeItem(i, count);
                 }
